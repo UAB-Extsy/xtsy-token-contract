@@ -1,0 +1,321 @@
+Compiling 54 files with Solc 0.8.15
+Compiling 500 files with Solc 0.8.30
+Compiling 1 files with Solc 0.4.26
+Solc 0.4.26 finished in 219.36ms
+Solc 0.8.15 finished in 589.07s
+Solc 0.8.30 finished in 617.10s
+Compiler run successful with warnings:
+Warning (5667): Unused function parameter. Remove or comment out the variable name to silence this warning.
+   --> src/xtsySale.sol:699:9:
+    |
+699 |         uint256 allocationTime,
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/CleanPresaleTest.t.sol:217:10:
+    |
+217 |         (uint256 cap, uint256 categoryAllocated,) = presale.getCategoryInfo(xtsySale.VestingCategory.TeamAdvisors);
+    |          ^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/MultiCurrencyReferral.t.sol:108:9:
+    |
+108 |         uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/MultiCurrencyReferral.t.sol:125:9:
+    |
+125 |         uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to view
+  --> lib/openzeppelin-contracts/test/metatx/ERC2771Forwarder.t.sol:99:5:
+   |
+99 |     function _tamperRequestData(
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> lib/openzeppelin-contracts/test/utils/SlotDerivation.t.sol:229:5:
+    |
+229 |     function testSymbolicDeriveMappingBooleanDirty(bytes32 dirtyKey) public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> lib/openzeppelin-contracts/test/utils/SlotDerivation.t.sol:239:5:
+    |
+239 |     function testSymbolicDeriveMappingAddressDirty(bytes32 dirtyKey) public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:72:5:
+   |
+72 |     function test_Additional_001_TokenDecimals() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:76:5:
+   |
+76 |     function test_Additional_002_TokenName() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:80:5:
+   |
+80 |     function test_Additional_003_TokenSymbol() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:84:5:
+   |
+84 |     function test_Additional_004_PresaleAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:88:5:
+   |
+88 |     function test_Additional_005_USDTAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:92:5:
+   |
+92 |     function test_Additional_006_USDCAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:96:5:
+   |
+96 |     function test_Additional_007_PresaleOwner() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:100:5:
+    |
+100 |     function test_Additional_008_TokenOwner() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:109:5:
+    |
+109 |     function test_Additional_010_ReferralConfig() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:115:5:
+    |
+115 |     function test_Additional_011_PresaleBalance() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:120:5:
+    |
+120 |     function test_Additional_012_UserInitialBalance() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:125:5:
+    |
+125 |     function test_Additional_013_Approval() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:155:5:
+    |
+155 |     function test_Additional_018_ContractExists() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:177:5:
+    |
+177 |     function test_Additional_020_MaxSupplyEnforced() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/BNBSaleTest.t.sol:66:5:
+   |
+66 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/CleanPresaleTest.t.sol:95:5:
+   |
+95 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/DeploymentTest.t.sol:24:5:
+   |
+24 |     function testTimingConfiguration() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+    --> test/ExtensivePresaleTests.t.sol:1215:5:
+     |
+1215 |     function test_080_TotalSupplyCheck() public {
+     |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/MATICSaleTest.t.sol:66:5:
+   |
+66 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:45:5:
+   |
+45 |     function testTotalSupplyMinted() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:53:5:
+   |
+53 |     function testPresaleAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:66:5:
+   |
+66 |     function testCommunityAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:79:5:
+   |
+79 |     function testTreasuryAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:91:5:
+   |
+91 |     function testTeamAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:103:5:
+    |
+103 |     function testReferralPoolAllocation() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:115:5:
+    |
+115 |     function testAllAllocationsSumToTotalSupply() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:128:5:
+    |
+128 |     function testOwnerHasNoTokens() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:135:5:
+    |
+135 |     function testAllocationAddressesSet() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/VestingTests.t.sol:89:5:
+   |
+89 |     function test_Vesting_001_DefaultSchedule() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/VestingTests.t.sol:100:5:
+    |
+100 |     function test_Vesting_002_TGETimestamp() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/VestingTests.t.sol:281:5:
+    |
+281 |     function test_Vesting_011_BatchStakingUpdate() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:100:5:
+    |
+100 |     function assertTokenBalance(ExtsyToken token, address account, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:107:5:
+    |
+107 |     function assertTotalSupply(ExtsyToken token, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:114:5:
+    |
+114 |     function assertAllowance(ExtsyToken token, address tokenOwner, address spender, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+src/MockUSDT.sol:52:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function Ownable() public {
+    ^ (Relevant source part starts here and spans across multiple lines).
+Warning: Use of the "var" keyword is deprecated.
+src/MockUSDT.sol:172:9: Warning: Use of the "var" keyword is deprecated.
+        var _allowance = allowed[_from][msg.sender];
+        ^------------^
+Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+src/MockUSDT.sol:330:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function TetherToken(uint _initialSupply, string _name, string _symbol, uint _decimals) public {
+    ^ (Relevant source part starts here and spans across multiple lines).
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:136:13: Warning: Invoking events without "emit" prefix is deprecated.
+            Transfer(msg.sender, owner, fee);
+            ^------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:138:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(msg.sender, _to, sendAmount);
+        ^-----------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:189:13: Warning: Invoking events without "emit" prefix is deprecated.
+            Transfer(_from, owner, fee);
+            ^-------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:191:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(_from, _to, sendAmount);
+        ^------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:208:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Approval(msg.sender, _spender, _value);
+        ^------------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:256:5: Warning: Invoking events without "emit" prefix is deprecated.
+    Pause();
+    ^-----^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:264:5: Warning: Invoking events without "emit" prefix is deprecated.
+    Unpause();
+    ^-------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:283:9: Warning: Invoking events without "emit" prefix is deprecated.
+        AddedBlackList(_evilUser);
+        ^-----------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:288:9: Warning: Invoking events without "emit" prefix is deprecated.
+        RemovedBlackList(_clearedUser);
+        ^----------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:296:9: Warning: Invoking events without "emit" prefix is deprecated.
+        DestroyedBlackFunds(_blackListedUser, dirtyFunds);
+        ^-----------------------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:390:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Deprecate(_upgradedAddress);
+        ^-------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:412:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Issue(amount);
+        ^-----------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:426:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Redeem(amount);
+        ^------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:437:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Params(basisPointsRate, maximumFee);
+        ^---------------------------------^

@@ -1,0 +1,331 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {Test, console2} from "forge-std/Test.sol";
+import {ExtsyToken} from "../src/ExtsyToken.sol";
+import {TestHelpers} from "./helpers/TestHelpers.sol";
+
+/**
+ * @title ExtsyTokenIntegrationTest
+ * @dev Integration tests for ExtsyToken covering complex scenarios and edge cases
+ */
+contract ExtsyTokenIntegrationTest is TestHelpers {
+    ExtsyToken public token;
+    
+    function setUp() public {
+        token = deployToken();
+    }
+    
+    // Complex scenario tests
+    function test_CompleteTokenLifecycle() public {
+        // 1. Initial state verification
+        assertEq(token.totalSupply(), 0);
+        assertEq(token.cap() - token.totalSupply(), TOKEN_CAP);
+        assertLt(token.totalSupply(), token.cap());
+        
+        // 2. Mint tokens to different users
+        vm.startPrank(owner);
+        token.mint(alice, MILLION_TOKENS);
+        token.mint(bob, THOUSAND_TOKENS);
+        token.mint(charlie, HUNDRED_TOKENS);
+        vm.stopPrank();
+        
+        uint256 expectedSupply = MILLION_TOKENS + THOUSAND_TOKENS + HUNDRED_TOKENS;
+        assertTotalSupply(token, expectedSupply);
+        assertTokenBalance(token, alice, MILLION_TOKENS);
+        assertTokenBalance(token, bob, THOUSAND_TOKENS);
+        assertTokenBalance(token, charlie, HUNDRED_TOKENS);
+        
+        // 3. Complex transfer scenario
+        vm.prank(alice);
+        token.transfer(dave, HUNDRED_TOKENS);
+        
+        vm.prank(bob);
+        token.approve(eve, THOUSAND_TOKENS);
+        
+        vm.prank(eve);
+        token.transferFrom(bob, dave, 500 * 10**18);
+        
+        // Verify balances after transfers
+        assertTokenBalance(token, alice, MILLION_TOKENS - HUNDRED_TOKENS);
+        assertTokenBalance(token, bob, THOUSAND_TOKENS - 500 * 10**18);
+        assertTokenBalance(token, dave, HUNDRED_TOKENS + 500 * 10**18);
+        assertAllowance(token, bob, eve, THOUSAND_TOKENS - 500 * 10**18);
+        
+        // 4. Burn scenario
+        vm.prank(alice);
+        token.burn(TEN_TOKENS);
+        
+        vm.prank(dave);
+        token.approve(alice, TEN_TOKENS);
+        
+        vm.prank(alice);
+        token.burnFrom(dave, TEN_TOKENS);
+        
+        // Verify supply after burns
+        uint256 finalSupply = expectedSupply - (2 * TEN_TOKENS);
+        assertTotalSupply(token, finalSupply);
+        
+        // 5. Ownership transfer
+        vm.prank(owner);
+        token.transferOwnership(alice);
+        
+        assertEq(token.owner(), alice);
+        
+        // 6. New owner can mint
+        vm.prank(alice);
+        token.mint(bob, TEN_TOKENS);
+        
+        assertTokenBalance(token, bob, THOUSAND_TOKENS - 500 * 10**18 + TEN_TOKENS);
+    }
+    
+    function test_MultipleMintScenario() public {
+        uint256 recipientCount = 10;
+        address[] memory recipients = createAddressArray(recipientCount);
+        uint256[] memory amounts = createAmountArray(recipientCount, THOUSAND_TOKENS);
+        
+        uint256 totalAmount = sumAmounts(amounts);
+        
+        // Mint to each recipient individually
+        vm.startPrank(owner);
+        for (uint256 i = 0; i < recipientCount; i++) {
+            token.mint(recipients[i], amounts[i]);
+        }
+        vm.stopPrank();
+        
+        // Verify all recipients received correct amounts
+        for (uint256 i = 0; i < recipientCount; i++) {
+            assertTokenBalance(token, recipients[i], amounts[i]);
+        }
+        
+        assertTotalSupply(token, totalAmount);
+        assertEq(token.cap() - token.totalSupply(), TOKEN_CAP - totalAmount);
+    }
+    
+    function test_NearCapMintingScenario() public {
+        uint256 nearCapAmount = TOKEN_CAP - MILLION_TOKENS;
+        
+        // Mint almost to cap
+        vm.prank(owner);
+        token.mint(alice, nearCapAmount);
+        
+        assertTokenBalance(token, alice, nearCapAmount);
+        assertEq(token.cap() - token.totalSupply(), MILLION_TOKENS);
+        assertLt(token.totalSupply(), token.cap());
+        
+        // Try to mint more than remaining - should fail
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(bob, MILLION_TOKENS + 1);
+        
+        // Mint exactly the remaining amount
+        vm.prank(owner);
+        token.mint(bob, MILLION_TOKENS);
+        
+        assertTokenBalance(token, bob, MILLION_TOKENS);
+        assertTotalSupply(token, TOKEN_CAP);
+        assertEq(token.cap() - token.totalSupply(), 0);
+        assertEq(token.totalSupply(), token.cap());
+        
+        // Try to mint when cap is reached - should fail
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(charlie, 1);
+    }
+    
+    function test_LargeScaleTransferScenario() public {
+        // Setup large balance
+        vm.prank(owner);
+        token.mint(alice, MILLION_TOKENS * 100); // 100M tokens
+        
+        uint256 transferCount = 50;
+        uint256 transferAmount = MILLION_TOKENS;
+        
+        // Perform many transfers
+        for (uint256 i = 0; i < transferCount; i++) {
+            address recipient = address(uint160(0x2000 + i));
+            
+            vm.prank(alice);
+            token.transfer(recipient, transferAmount);
+            
+            assertTokenBalance(token, recipient, transferAmount);
+        }
+        
+        uint256 expectedAliceBalance = (MILLION_TOKENS * 100) - (transferCount * transferAmount);
+        assertTokenBalance(token, alice, expectedAliceBalance);
+    }
+    
+    function test_ComplexAllowanceScenario() public {
+        vm.prank(owner);
+        token.mint(alice, MILLION_TOKENS);
+        
+        // Set multiple allowances
+        vm.prank(alice);
+        token.approve(bob, HUNDRED_TOKENS);
+        
+        vm.prank(alice);
+        token.approve(charlie, THOUSAND_TOKENS);
+        
+        vm.prank(alice);
+        token.approve(dave, TEN_TOKENS);
+        
+        // Verify allowances
+        assertAllowance(token, alice, bob, HUNDRED_TOKENS);
+        assertAllowance(token, alice, charlie, THOUSAND_TOKENS);
+        assertAllowance(token, alice, dave, TEN_TOKENS);
+        
+        // Use allowances partially
+        vm.prank(bob);
+        token.transferFrom(alice, eve, HUNDRED_TOKENS / 2);
+        
+        vm.prank(charlie);
+        token.transferFrom(alice, eve, THOUSAND_TOKENS / 4);
+        
+        // Check remaining allowances
+        assertAllowance(token, alice, bob, HUNDRED_TOKENS / 2);
+        assertAllowance(token, alice, charlie, THOUSAND_TOKENS - (THOUSAND_TOKENS / 4));
+        assertAllowance(token, alice, dave, TEN_TOKENS);
+        
+        // Verify eve received correct amount
+        uint256 expectedEveBalance = (HUNDRED_TOKENS / 2) + (THOUSAND_TOKENS / 4);
+        assertTokenBalance(token, eve, expectedEveBalance);
+    }
+    
+    function test_BurnAndMintCycleScenario() public {
+        uint256 initialMint = MILLION_TOKENS;
+        
+        // Mint initial supply
+        vm.prank(owner);
+        token.mint(alice, initialMint);
+        
+        assertTotalSupply(token, initialMint);
+        assertTokenBalance(token, alice, initialMint);
+        
+        // Burn half
+        uint256 burnAmount = initialMint / 2;
+        vm.prank(alice);
+        token.burn(burnAmount);
+        
+        assertTotalSupply(token, initialMint - burnAmount);
+        assertTokenBalance(token, alice, initialMint - burnAmount);
+        
+        // Mint to someone else
+        vm.prank(owner);
+        token.mint(bob, burnAmount);
+        
+        assertTotalSupply(token, initialMint);
+        assertTokenBalance(token, bob, burnAmount);
+        
+        // Total supply is back to original, but distributed differently
+        assertEq(token.balanceOf(alice) + token.balanceOf(bob), initialMint);
+    }
+    
+    function test_OwnershipTransferAndMintingRights() public {
+        // Initial owner mints some tokens
+        vm.prank(owner);
+        token.mint(alice, MILLION_TOKENS);
+        
+        // Transfer ownership to alice
+        vm.prank(owner);
+        token.transferOwnership(alice);
+        
+        assertEq(token.owner(), alice);
+        
+        // Original owner can no longer mint
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(bob, THOUSAND_TOKENS);
+        
+        // New owner can mint
+        vm.prank(alice);
+        token.mint(bob, THOUSAND_TOKENS);
+        
+        assertTokenBalance(token, bob, THOUSAND_TOKENS);
+        
+        // Transfer ownership again
+        vm.prank(alice);
+        token.transferOwnership(bob);
+        
+        assertEq(token.owner(), bob);
+        
+        // Previous owner (alice) can no longer mint
+        vm.prank(alice);
+        vm.expectRevert();
+        token.mint(charlie, HUNDRED_TOKENS);
+        
+        // Current owner (bob) can mint
+        vm.prank(bob);
+        token.mint(charlie, HUNDRED_TOKENS);
+        
+        assertTokenBalance(token, charlie, HUNDRED_TOKENS);
+    }
+    
+    // Gas measurement tests
+    function test_MintGasUsage() public {
+        uint256 recipientCount = 5;
+        address[] memory recipients = createAddressArray(recipientCount);
+        uint256[] memory amounts = createAmountArray(recipientCount, THOUSAND_TOKENS);
+        
+        // Measure gas for individual mints
+        uint256 totalGas = 0;
+        vm.startPrank(owner);
+        for (uint256 i = 0; i < recipientCount; i++) {
+            uint256 gasBefore = gasleft();
+            token.mint(recipients[i], amounts[i]);
+            totalGas += gasBefore - gasleft();
+        }
+        vm.stopPrank();
+        
+        console2.log("Total gas for", recipientCount, "individual mints:", totalGas);
+        console2.log("Average gas per mint:", totalGas / recipientCount);
+        
+        // Verify all mints were successful
+        for (uint256 i = 0; i < recipientCount; i++) {
+            assertTokenBalance(token, recipients[i], amounts[i]);
+        }
+    }
+    
+    // Edge case tests
+    function test_ZeroAmountOperations() public {
+        vm.prank(owner);
+        token.mint(alice, MILLION_TOKENS);
+        
+        // Zero amount transfer should work
+        vm.prank(alice);
+        token.transfer(bob, 0);
+        
+        assertTokenBalance(token, alice, MILLION_TOKENS);
+        assertTokenBalance(token, bob, 0);
+        
+        // Zero amount approval should work
+        vm.prank(alice);
+        token.approve(bob, 0);
+        
+        assertAllowance(token, alice, bob, 0);
+        
+        // Zero amount burn should work
+        vm.prank(alice);
+        token.burn(0);
+        
+        assertTokenBalance(token, alice, MILLION_TOKENS);
+    }
+    
+    function test_MaxUint256Operations() public {
+        // Test with very large allowance (common pattern)
+        vm.prank(owner);
+        token.mint(alice, MILLION_TOKENS);
+        
+        vm.prank(alice);
+        token.approve(bob, type(uint256).max);
+        
+        assertAllowance(token, alice, bob, type(uint256).max);
+        
+        // Transfer should work with max allowance
+        vm.prank(bob);
+        token.transferFrom(alice, charlie, HUNDRED_TOKENS);
+        
+        assertTokenBalance(token, charlie, HUNDRED_TOKENS);
+        // Max allowance should remain max after transfer
+        assertAllowance(token, alice, bob, type(uint256).max);
+    }
+}

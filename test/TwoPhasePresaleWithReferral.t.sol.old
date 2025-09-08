@@ -1,0 +1,2 @@
+// This file contains the old tests before the referral system was changed from codes to direct addresses
+// Kept for reference - the actual tests have been rewritten in MultiCurrencyReferral.t.sol

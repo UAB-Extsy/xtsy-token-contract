@@ -1,0 +1,1621 @@
+Compiling 1 files with Solc 0.4.26
+Compiling 63 files with Solc 0.8.30
+Solc 0.4.26 finished in 251.97ms
+Solc 0.8.30 finished in 119.04s
+Compiler run successful with warnings:
+Warning (5667): Unused function parameter. Remove or comment out the variable name to silence this warning.
+   --> src/xtsySale.sol:699:9:
+    |
+699 |         uint256 allocationTime,
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/CleanPresaleTest.t.sol:217:10:
+    |
+217 |         (uint256 cap, uint256 categoryAllocated,) = presale.getCategoryInfo(xtsySale.VestingCategory.TeamAdvisors);
+    |          ^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/MultiCurrencyReferral.t.sol:108:9:
+    |
+108 |         uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/MultiCurrencyReferral.t.sol:125:9:
+    |
+125 |         uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:72:5:
+   |
+72 |     function test_Additional_001_TokenDecimals() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:76:5:
+   |
+76 |     function test_Additional_002_TokenName() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:80:5:
+   |
+80 |     function test_Additional_003_TokenSymbol() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:84:5:
+   |
+84 |     function test_Additional_004_PresaleAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:88:5:
+   |
+88 |     function test_Additional_005_USDTAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:92:5:
+   |
+92 |     function test_Additional_006_USDCAddress() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/AdditionalTests.t.sol:96:5:
+   |
+96 |     function test_Additional_007_PresaleOwner() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:100:5:
+    |
+100 |     function test_Additional_008_TokenOwner() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:109:5:
+    |
+109 |     function test_Additional_010_ReferralConfig() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:115:5:
+    |
+115 |     function test_Additional_011_PresaleBalance() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:120:5:
+    |
+120 |     function test_Additional_012_UserInitialBalance() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:125:5:
+    |
+125 |     function test_Additional_013_Approval() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:155:5:
+    |
+155 |     function test_Additional_018_ContractExists() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/AdditionalTests.t.sol:177:5:
+    |
+177 |     function test_Additional_020_MaxSupplyEnforced() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/BNBSaleTest.t.sol:66:5:
+   |
+66 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/CleanPresaleTest.t.sol:95:5:
+   |
+95 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/DeploymentTest.t.sol:24:5:
+   |
+24 |     function testTimingConfiguration() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+    --> test/ExtensivePresaleTests.t.sol:1215:5:
+     |
+1215 |     function test_080_TotalSupplyCheck() public {
+     |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/MATICSaleTest.t.sol:66:5:
+   |
+66 |     function testBasicSetup() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:45:5:
+   |
+45 |     function testTotalSupplyMinted() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:53:5:
+   |
+53 |     function testPresaleAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:66:5:
+   |
+66 |     function testCommunityAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:79:5:
+   |
+79 |     function testTreasuryAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TokenomicsDistribution.t.sol:91:5:
+   |
+91 |     function testTeamAllocation() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:103:5:
+    |
+103 |     function testReferralPoolAllocation() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:115:5:
+    |
+115 |     function testAllAllocationsSumToTotalSupply() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:128:5:
+    |
+128 |     function testOwnerHasNoTokens() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TokenomicsDistribution.t.sol:135:5:
+    |
+135 |     function testAllocationAddressesSet() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/VestingTests.t.sol:89:5:
+   |
+89 |     function test_Vesting_001_DefaultSchedule() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/VestingTests.t.sol:100:5:
+    |
+100 |     function test_Vesting_002_TGETimestamp() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/VestingTests.t.sol:281:5:
+    |
+281 |     function test_Vesting_011_BatchStakingUpdate() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:100:5:
+    |
+100 |     function assertTokenBalance(ExtsyToken token, address account, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:107:5:
+    |
+107 |     function assertTotalSupply(ExtsyToken token, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/helpers/TestHelpers.sol:114:5:
+    |
+114 |     function assertAllowance(ExtsyToken token, address tokenOwner, address spender, uint256 expected) internal {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+src/MockUSDT.sol:52:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function Ownable() public {
+    ^ (Relevant source part starts here and spans across multiple lines).
+Warning: Use of the "var" keyword is deprecated.
+src/MockUSDT.sol:172:9: Warning: Use of the "var" keyword is deprecated.
+        var _allowance = allowed[_from][msg.sender];
+        ^------------^
+Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+src/MockUSDT.sol:330:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function TetherToken(uint _initialSupply, string _name, string _symbol, uint _decimals) public {
+    ^ (Relevant source part starts here and spans across multiple lines).
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:136:13: Warning: Invoking events without "emit" prefix is deprecated.
+            Transfer(msg.sender, owner, fee);
+            ^------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:138:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(msg.sender, _to, sendAmount);
+        ^-----------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:189:13: Warning: Invoking events without "emit" prefix is deprecated.
+            Transfer(_from, owner, fee);
+            ^-------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:191:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(_from, _to, sendAmount);
+        ^------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:208:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Approval(msg.sender, _spender, _value);
+        ^------------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:256:5: Warning: Invoking events without "emit" prefix is deprecated.
+    Pause();
+    ^-----^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:264:5: Warning: Invoking events without "emit" prefix is deprecated.
+    Unpause();
+    ^-------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:283:9: Warning: Invoking events without "emit" prefix is deprecated.
+        AddedBlackList(_evilUser);
+        ^-----------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:288:9: Warning: Invoking events without "emit" prefix is deprecated.
+        RemovedBlackList(_clearedUser);
+        ^----------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:296:9: Warning: Invoking events without "emit" prefix is deprecated.
+        DestroyedBlackFunds(_blackListedUser, dirtyFunds);
+        ^-----------------------------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:390:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Deprecate(_upgradedAddress);
+        ^-------------------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:412:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Issue(amount);
+        ^-----------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:426:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Redeem(amount);
+        ^------------^
+Warning: Invoking events without "emit" prefix is deprecated.
+src/MockUSDT.sol:437:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Params(basisPointsRate, maximumFee);
+        ^---------------------------------^
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployMockUSDC.s.sol:4:8
+  |
+4 | import "forge-std/Script.sol";
+  |        ----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployMockUSDC.s.sol:5:8
+  |
+5 | import "../src/MockUSDC.sol";
+  |        ---------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployTwoPhasePresaleWithReferral.s.sol:4:8
+  |
+4 | import "forge-std/Script.sol";
+  |        ----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/MockUSDC.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+  |        -----------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployCleanPresale.s.sol:4:8
+  |
+4 | import "forge-std/Script.sol";
+  |        ----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployCleanPresale.s.sol:5:8
+  |
+5 | import "../src/xtsySale.sol";
+  |        ---------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployCleanPresale.s.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployCleanPresale.s.sol:7:8
+  |
+7 | import "../src/MockUSDC.sol";
+  |        ---------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployCleanPresale.s.sol:8:8
+  |
+8 | import "../test/mocks/MockUSDT.sol";
+  |        ----------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
+  |        ----------------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployTwoPhasePresaleWithReferral.s.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployTwoPhasePresaleWithReferral.s.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployTwoPhasePresaleWithReferral.s.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployMockUSDT.s.sol:4:8
+  |
+4 | import "forge-std/Script.sol";
+  |        ----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+  |        ---------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+  |        ---------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/MockUSDC.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+  |        ------------------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployTwoPhasePresaleWithReferral.s.sol:101:14
+    |
+101 |     function setTGE(address presaleAddress, uint256 tgeTimestamp) external {
+    |              ------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/TetherInterface.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+  |        ---------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/BNBSaleTest.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:6:8
+  |
+6 | import "@openzeppelin/contracts/utils/Pausable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:6:8
+  |
+6 | import "@openzeppelin/contracts/utils/Pausable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+  |        ---------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:6:8
+  |
+6 | import "@openzeppelin/contracts/utils/Pausable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/script/DeployMockUSDT.s.sol:5:8
+  |
+5 | import "../test/mocks/MockUSDT.sol";
+  |        ----------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:8:8
+  |
+8 | import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+  |        ------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:56:9
+   |
+56 |         xtsyToken.transfer(address(presale), 150_000_000 * 10**18);
+   |         ----------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/CleanPresaleTest.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:6:8
+  |
+6 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:9:8
+  |
+9 | import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+  |        -----------------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:10:8
+   |
+10 | import "./interfaces/AggregatorV3Interface.sol";
+   |        ----------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:8:8
+  |
+8 | import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+  |        ------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/BNBSaleTest.t.sol:5:8
+  |
+5 | import "../src/xtsySaleBNB.sol";
+  |        ------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:151:9
+    |
+151 |         xtsyToken.transfer(alice, amount);
+    |         ---------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:392:14
+    |
+392 |     function setTGETimestamp(uint256 timestamp) external onlyOwner {
+    |              ---------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/CleanPresaleTest.t.sol:5:8
+  |
+5 | import "../src/xtsySale.sol";
+  |        ---------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/CleanPresaleTest.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+  |        ---------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:29:30
+   |
+29 |     address public immutable presaleAddress;
+   |                              --------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:5:8
+  |
+5 | import "@openzeppelin/contracts/access/Ownable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/CleanPresaleTest.t.sol:61:9
+   |
+61 |         xtsyToken.transfer(address(presale), 50_000_000 * 10**18);
+   |         ---------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:32:29
+   |
+32 |     IERC20 public immutable usdtToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:33:29
+   |
+33 |     IERC20 public immutable usdcToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/AdditionalTests.t.sol:167:9
+    |
+167 |         xtsyToken.transfer(alice, amount);
+    |         ---------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/DeploymentTest.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:651:14
+    |
+651 |     function buyTokensWithUSDTAndReferral(uint256 usdtAmount, address referrer) external nonReentrant whenNotPaused {
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:660:14
+    |
+660 |     function buyTokensWithUSDCAndReferral(uint256 usdcAmount, address referrer) external nonReentrant whenNotPaused {
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:668:14
+    |
+668 |     function buyTokensWithUSDT(uint256 usdtAmount) external nonReentrant whenNotPaused {
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:9:8
+  |
+9 | import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+  |        -----------------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:97:14
+   |
+97 |         bool hasClaimedTGE;            // Whether TGE tokens claimed
+   |              -------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/CleanPresaleTest.t.sol:262:17
+    |
+262 |         uint256 expectedTGE = (allocationAmount * 200) / 1000; // 20%
+    |                 -----------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/DeploymentTest.t.sol:5:8
+  |
+5 | import "../script/DeployCleanPresale.s.sol";
+  |        ------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/TwoPhasePresaleWithReferral.sol:676:14
+    |
+676 |     function buyTokensWithUSDC(uint256 usdcAmount) external nonReentrant whenNotPaused {
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:6:8
+  |
+6 | import "@openzeppelin/contracts/utils/Pausable.sol";
+  |        --------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:10:8
+   |
+10 | import "./interfaces/AggregatorV3Interface.sol";
+   |        ----------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:25:29
+   |
+25 |     IERC20 public immutable usdtToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:30:30
+   |
+30 |     address public immutable publicSaleAddress;
+   |                              -----------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:26:29
+   |
+26 |     IERC20 public immutable usdcToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:7:8
+  |
+7 | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  |        ------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:31:30
+   |
+31 |     address public immutable liquidityAddress;
+   |                              ----------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:251:14
+    |
+251 |     function setTGETimestamp(uint256 _tgeTimestamp) external onlyOwner {
+    |              ---------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/MATICSaleTest.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:8:8
+  |
+8 | import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+  |        ------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:9:8
+  |
+9 | import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+  |        -----------------------------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/MATICSaleTest.t.sol:5:8
+  |
+5 | import "../src/xtsySaleMATIC.sol";
+  |        --------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:32:30
+   |
+32 |     address public immutable teamAdvisorsAddress;
+   |                              -------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/SimplePresaleDemo.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:344:14
+    |
+344 |     function buyTokensWithUSDT(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:10:8
+   |
+10 | import "./interfaces/AggregatorV3Interface.sol";
+   |        ----------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:69:9
+   |
+69 |         xtsyToken.transfer(address(presale), 150_000_000 * 10**18);
+   |         ----------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:33:30
+   |
+33 |     address public immutable ecosystemAddress;
+   |                              ----------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:34:30
+   |
+34 |     address public immutable treasuryAddress;
+   |                              ---------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:35:30
+   |
+35 |     address public immutable stakingAddress;
+   |                              --------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/ExtsyToken.sol:36:30
+   |
+36 |     address public immutable marketingAddress;
+   |                              ----------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:307:14
+    |
+307 |     function buyTokensWithUSDT(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/TokenomicsDistribution.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/TokenomicsDistribution.t.sol:5:8
+  |
+5 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:352:14
+    |
+352 |     function buyTokensWithUSDC(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/SimplePresaleDemo.t.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[divide-before-multiply]: multiplication should occur before division to avoid loss of precision
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:397:34
+    |
+397 |         uint256 expectedBonus = ((purchaseAmount * 10**18 / PRESALE_RATE) * 50) / 1000; // 5%
+    |                                  ---------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#divide-before-multiply
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:315:14
+    |
+315 |     function buyTokensWithUSDC(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:360:14
+    |
+360 |     function buyTokensWithUSDTAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:25:29
+   |
+25 |     IERC20 public immutable usdtToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:74:9
+   |
+74 |         xtsyToken.transfer(address(presale), 125_000_000 * 10**18);
+   |         ----------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/VestingTests.t.sol:4:8
+  |
+4 | import "forge-std/Test.sol";
+  |        --------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/VestingTests.t.sol:5:8
+  |
+5 | import "../src/TwoPhasePresaleWithReferral.sol";
+  |        ----------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/helpers/TestHelpers.sol:62:9
+   |
+62 |         token.transfer(to, amount);
+   |         --------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/helpers/TestHelpers.sol:75:9
+   |
+75 |         token.transfer(alice, MILLION_TOKENS);
+   |         -------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[divide-before-multiply]: multiplication should occur before division to avoid loss of precision
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:735:34
+    |
+735 |         uint256 referralBonus = ((10_000 * 10**6 * 10**18 / PRESALE_RATE) * 50) / 1000;
+    |                                  ---------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#divide-before-multiply
+
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:26:29
+   |
+26 |     IERC20 public immutable usdcToken;
+   |                             ---------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/VestingTests.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/VestingTests.t.sol:65:9
+   |
+65 |         xtsyToken.transfer(address(presale), 150_000_000 * 10**18);
+   |         ----------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:946:62
+    |
+946 |         (uint256 presaleSold, uint256 publicSold,, , uint256 totalUSD,,) = presale.getSaleStats();
+    |                                                              --------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:323:14
+    |
+323 |     function buyTokensWithUSDTAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:231:17
+    |
+231 |         uint256 ownerUSDTBefore = usdtToken.balanceOf(owner);
+    |                 ---------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:369:14
+    |
+369 |     function buyTokensWithUSDCAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/helpers/TestHelpers.sol:76:9
+   |
+76 |         token.transfer(bob, THOUSAND_TOKENS);
+   |         ------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/helpers/TestHelpers.sol:77:9
+   |
+77 |         token.transfer(charlie, HUNDRED_TOKENS);
+   |         ---------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:332:14
+    |
+332 |     function buyTokensWithUSDCAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:341:14
+    |
+341 |     function buyTokensWithBNB(
+    |              ----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:348:14
+    |
+348 |     function buyTokensWithBNBAndReferral(
+    |              ---------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:378:14
+    |
+378 |     function buyTokensWithETH(
+    |              ----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/mocks/MockUSDC.sol:4:8
+  |
+4 | import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+  |        -----------------------------------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:307:14
+    |
+307 |     function buyTokensWithUSDT(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+ --> /home/usman/extsy-smart-contracts/extsy-token/test/SimplePresaleDemo.t.sol:6:8
+  |
+6 | import "../src/ExtsyToken.sol";
+  |        -----------------------
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unaliased-plain-import
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/MultiCurrencyReferral.t.sol:232:17
+    |
+232 |         uint256 ownerUSDCBefore = usdcToken.balanceOf(owner);
+    |                 ---------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+    --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:1028:23
+     |
+1028 |         (,,,, uint256 totalUSD,,) = presale.getSaleStats();
+     |                       --------
+     |
+     = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+    --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:1042:17
+     |
+1042 |         uint256 ownerUSDTBefore = usdtToken.balanceOf(owner);
+     |                 ---------------
+     |
+     = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+    --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:1043:17
+     |
+1043 |         uint256 ownerUSDCBefore = usdcToken.balanceOf(owner);
+     |                 ---------------
+     |
+     = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:315:14
+    |
+315 |     function buyTokensWithUSDC(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+    --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:1203:17
+     |
+1203 |         uint256 contractUSDTBefore = usdtToken.balanceOf(address(presale));
+     |                 ------------------
+     |
+     = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+    --> /home/usman/extsy-smart-contracts/extsy-token/test/ExtensivePresaleTests.t.sol:1204:17
+     |
+1204 |         uint256 contractUSDCBefore = usdcToken.balanceOf(address(presale));
+     |                 ------------------
+     |
+     = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/VestingTests.t.sol:405:17
+    |
+405 |         uint256 expectedTGE = 40000 * 10**18; // 100% at TGE
+    |                 -----------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+  --> /home/usman/extsy-smart-contracts/extsy-token/test/SimplePresaleDemo.t.sol:72:9
+   |
+72 |         xtsyToken.transfer(address(presale), 125_000_000 * 10**18);
+   |         ----------------------------------------------------------
+   |
+   = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:385:14
+    |
+385 |     function buyTokensWithETHAndReferral(
+    |              ---------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:395:9
+    |
+395 |         paymentToken.transferFrom(msg.sender, address(this), usdAmount);
+    |         ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:323:14
+    |
+323 |     function buyTokensWithUSDTAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:430:14
+    |
+430 |     function _buyTokensWithBNB(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:435:9
+    |
+435 |         paymentToken.transferFrom(msg.sender, address(this), usdAmount);
+    |         ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:469:9
+    |
+469 |         saleToken.transfer(msg.sender, totalTokensToTransfer);
+    |         -----------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[divide-before-multiply]: multiplication should occur before division to avoid loss of precision
+   --> /home/usman/extsy-smart-contracts/extsy-token/test/SimplePresaleDemo.t.sol:120:33
+    |
+120 |         uint256 expectedBonus = (purchaseAmount * 10**18 / 25000) * 50 / 1000; // 5% of tokens
+    |                                 --------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#divide-before-multiply
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:502:14
+    |
+502 |     function getLatestBNBPrice() public view returns (uint256) {
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:332:14
+    |
+332 |     function buyTokensWithUSDCAndReferral(
+    |              ----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:557:9
+    |
+557 |         saleToken.transfer(msg.sender, totalTokensToTransfer);
+    |         -----------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:341:14
+    |
+341 |     function buyTokensWithMATIC(
+    |              ------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:479:14
+    |
+479 |     function _buyTokensWithETH(
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:563:14
+    |
+563 |     function getLatestETHPrice() public view returns (uint256) {
+    |              -----------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:533:13
+    |
+533 |             usdtToken.transfer(owner(), usdtBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:348:14
+    |
+348 |     function buyTokensWithMATICAndReferral(
+    |              -----------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:665:9
+    |
+665 |         saleToken.transfer(msg.sender, totalClaimable);
+    |         ----------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:395:9
+    |
+395 |         paymentToken.transferFrom(msg.sender, address(this), usdAmount);
+    |         ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:644:14
+    |
+644 |     function claimTGETokens() external nonReentrant {
+    |              --------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:536:13
+    |
+536 |             usdcToken.transfer(owner(), usdcBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:680:9
+    |
+680 |         saleToken.transfer(msg.sender, claimableAmount);
+    |         -----------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:430:14
+    |
+430 |     function _buyTokensWithMATIC(
+    |              -------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:718:17
+    |
+718 |         uint256 timeFromTGE = block.timestamp - tgeTimestamp;
+    |                 -----------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:734:13
+    |
+734 |             usdtToken.transfer(owner(), usdtBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:737:13
+    |
+737 |             usdcToken.transfer(owner(), usdcBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[mixed-case-function]: function names should use mixedCase
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:502:14
+    |
+502 |     function getLatestMATICPrice() public view returns (uint256) {
+    |              -------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-function
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:533:13
+    |
+533 |             usdtToken.transfer(owner(), usdtBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:536:13
+    |
+536 |             usdcToken.transfer(owner(), usdcBalance);
+    |             ----------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+warning[erc20-unchecked-transfer]: ERC20 'transfer' and 'transferFrom' calls should check the return value
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:749:13
+    |
+749 |             saleToken.transfer(owner(), balance);
+    |             ------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#erc20-unchecked-transfer
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:251:31
+    |
+251 |         bytes32 messageHash = keccak256(abi.encodePacked(user, amount, nonce, address(this)));
+    |                               ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:288:31
+    |
+288 |         bytes32 messageHash = keccak256(abi.encodePacked(user, amount, nonce, address(this)));
+    |                               ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:251:31
+    |
+251 |         bytes32 messageHash = keccak256(abi.encodePacked(user, amount, nonce, address(this)));
+    |                               ---------------------------------------------------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleBNB.sol:252:33
+    |
+252 |         bytes32 signatureHash = keccak256(signature);
+    |                                 --------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySale.sol:289:33
+    |
+289 |         bytes32 signatureHash = keccak256(signature);
+    |                                 --------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+
+note[asm-keccak256]: use of inefficient hashing mechanism; consider using inline assembly
+   --> /home/usman/extsy-smart-contracts/extsy-token/src/xtsySaleMATIC.sol:252:33
+    |
+252 |         bytes32 signatureHash = keccak256(signature);
+    |                                 --------------------
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#asm-keccak256
+

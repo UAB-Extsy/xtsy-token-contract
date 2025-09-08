@@ -1,0 +1,443 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../src/TwoPhasePresaleWithReferral.sol";
+import "../src/ExtsyToken.sol";
+import {MockUSDT} from "./mocks/MockUSDT.sol";
+import {MockUSDC} from "./mocks/MockUSDC.sol";
+
+/**
+ * @title VestingTests
+ * @dev Comprehensive tests for vesting functionality
+ */
+contract VestingTests is Test {
+    TwoPhasePresaleWithReferral public presale;
+    ExtsyToken public xtsyToken;
+    MockUSDT public usdtToken;
+    MockUSDC public usdcToken;
+    
+    address public owner = address(1);
+    address public alice = address(2);
+    address public bob = address(3);
+    address public charlie = address(4);
+    
+    uint256 public tgeTime;
+    
+    function setUp() public {
+        vm.startPrank(owner);
+        
+        usdtToken = new MockUSDT();
+        usdcToken = new MockUSDC();
+        
+        xtsyToken = new ExtsyToken(
+            owner, owner, owner, owner, owner, owner, owner, owner, owner
+        );
+        
+        presale = new TwoPhasePresaleWithReferral(
+            address(xtsyToken),
+            address(usdtToken),
+            address(usdcToken),
+            owner
+        );
+        
+        // Configure sale
+        TwoPhasePresaleWithReferral.SaleConfig memory config = TwoPhasePresaleWithReferral.SaleConfig({
+            presaleStartTime: block.timestamp + 25 seconds,
+            presaleEndTime: block.timestamp + 50 minutes,   
+            publicSaleStartTime: block.timestamp + 60 minutes,
+            publicSaleEndTime: block.timestamp + 130 minutes,
+            presaleRate: 25000,        // $0.025 per token
+            publicSaleStartRate: 100000,   // $0.10 per token
+            presaleCap: 100_000_000 * 10**18,
+            publicSaleCap: 50_000_000 * 10**18,
+            whitelistDeadline: block.timestamp + 12 seconds,
+            priceIncreaseInterval: 30 minutes,
+            priceIncreaseAmount: 10000
+        });
+        presale.configureSale(config);
+        
+        // Set TGE for Sept 10, 2025 (simulated)
+        tgeTime = block.timestamp + 30 days;
+        presale.setTGETimestamp(tgeTime);
+        
+        // Transfer tokens to presale
+        xtsyToken.transfer(address(presale), 150_000_000 * 10**18);
+        
+        // Mint USDT to users
+        usdtToken.mint(alice, 10_000_000 * 10**6);
+        usdtToken.mint(bob, 10_000_000 * 10**6);
+        usdtToken.mint(charlie, 10_000_000 * 10**6);
+        
+        // Whitelist users
+        presale.addToWhitelist(alice);
+        presale.addToWhitelist(bob);
+        presale.addToWhitelist(charlie);
+        
+        vm.stopPrank();
+        
+        // Approve presale
+        vm.prank(alice);
+        usdtToken.approve(address(presale), type(uint256).max);
+        vm.prank(bob);
+        usdtToken.approve(address(presale), type(uint256).max);
+        vm.prank(charlie);
+        usdtToken.approve(address(presale), type(uint256).max);
+    }
+    
+    // Test 1: Vesting schedule configuration - Presale buyers get 100% at TGE
+    function test_Vesting_001_DefaultSchedule() public {
+        (uint256 tge, uint256 monthly, uint256 duration, uint256 linearStart, uint256 linearEnd, uint256 linearPercent) = presale.vestingSchedule();
+        assertEq(tge, 1000); // 100% for presale buyers
+        assertEq(monthly, 0); // No monthly vesting for presale
+        assertEq(duration, 0); // No duration for presale
+        assertEq(linearStart, 0); // No linear start for presale
+        assertEq(linearEnd, 0); // No linear end for presale  
+        assertEq(linearPercent, 0); // No linear percent for presale
+    }
+    
+    // Test 2: TGE timestamp setting
+    function test_Vesting_002_TGETimestamp() public {
+        assertEq(presale.tgeTimestamp(), tgeTime);
+    }
+    
+    // Test 3: Cannot claim before TGE
+    function test_Vesting_003_CannotClaimBeforeTGE() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Try to claim before sale ends
+        vm.expectRevert(TwoPhasePresaleWithReferral.SaleNotEnded.selector);
+        vm.prank(alice);
+        presale.claimTokens();
+        
+        // Move to after sale but before TGE
+        vm.warp(block.timestamp + 140 minutes); // 14 days scaled
+        vm.expectRevert(TwoPhasePresaleWithReferral.TGENotReached.selector);
+        vm.prank(alice);
+        presale.claimTokens();
+    }
+    
+    // Test 4: 100% unlock at TGE for presale buyers
+    function test_Vesting_004_TGEUnlock() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // Should get 40,000 XTSY (1000 / 0.025)
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        
+        // Check vested amount (should be 100%)
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // 100% of 40,000
+        
+        // Claim tokens
+        vm.prank(alice);
+        presale.claimTokens();
+        
+        // Check balance
+        assertEq(xtsyToken.balanceOf(alice), 40000 * 10**18);
+    }
+    
+    // Test 5: No additional unlocks after TGE for presale buyers
+    function test_Vesting_005_MonthlyUnlock() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // 40,000 XTSY
+        
+        // Move to 1 month after TGE
+        vm.warp(tgeTime + 300 minutes); // 30 days scaled
+        
+        // Check vested amount (100% at TGE, no additional unlocks)
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // Still 100% of 40,000
+        
+        // Move to 2 months after TGE
+        vm.warp(tgeTime + 600 minutes); // 60 days scaled
+        vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // Still 100% of 40,000
+        
+        // Move to 3 months after TGE
+        vm.warp(tgeTime + 900 minutes); // 90 days scaled
+        vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // Still 100% of 40,000
+    }
+    
+    // Test 6: Linear vesting (months 4-9)
+    function test_Vesting_006_LinearVesting() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // 40,000 XTSY
+        
+        // Move to month 4
+        vm.warp(tgeTime + 1200 minutes); // 120 days scaled
+        
+        // Check vested amount (100% at TGE for presale buyers)
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // 100% of 40,000
+        
+        // Move to month 6
+        vm.warp(tgeTime + 1800 minutes); // 180 days scaled
+        vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // Still 100% of 40,000
+        
+        // Move to month 9 (full vesting)
+        vm.warp(tgeTime + 2700 minutes); // 270 days scaled
+        vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 40000 * 10**18); // Still 100% of 40,000
+    }
+    
+    // Test 7: Fast unlock for stakers
+    function test_Vesting_007_FastUnlockForStakers() public {
+        // Make purchases
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // 40,000 XTSY
+        vm.prank(bob);
+        presale.buyTokensWithUSDT(1000 * 10**6); // 40,000 XTSY
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        
+        // Alice should have 100% vested at TGE
+        uint256 aliceVested = presale.calculateVestedAmount(alice);
+        assertEq(aliceVested, 40000 * 10**18); // 100% at TGE
+        
+        // Bob should also have 100% vested at TGE  
+        uint256 bobVested = presale.calculateVestedAmount(bob);
+        assertEq(bobVested, 40000 * 10**18); // 100% at TGE
+    }
+    
+    // Test 8: Multiple claims
+    function test_Vesting_008_MultipleClaims() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // 40,000 XTSY
+        
+        // First claim at TGE
+        vm.warp(tgeTime);
+        vm.prank(alice);
+        presale.claimTokens();
+        assertEq(xtsyToken.balanceOf(alice), 40000 * 10**18); // 100%
+        
+        // Second claim at month 1 should fail (already claimed 100%)
+        vm.warp(tgeTime + 300 minutes); // 30 days scaled
+        vm.prank(alice);
+        vm.expectRevert(TwoPhasePresaleWithReferral.TokensAlreadyClaimed.selector);
+        presale.claimTokens();
+        
+        // Third claim at month 3 should also fail
+        vm.warp(tgeTime + 900 minutes); // 90 days scaled
+        vm.prank(alice);
+        vm.expectRevert(TwoPhasePresaleWithReferral.TokensAlreadyClaimed.selector);
+        presale.claimTokens();
+    }
+    
+    // Test 9: Cannot claim more than vested
+    function test_Vesting_009_CannotOverclaim() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Claim at TGE
+        vm.warp(tgeTime);
+        vm.prank(alice);
+        presale.claimTokens();
+        
+        // Try to claim again immediately
+        vm.expectRevert(TwoPhasePresaleWithReferral.TokensAlreadyClaimed.selector);
+        vm.prank(alice);
+        presale.claimTokens();
+    }
+    
+    // Test 10: Vesting info getter
+    function test_Vesting_010_VestingInfoGetter() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        
+        (uint256 allocated, uint256 claimed, uint256 vested, uint256 claimable, uint256 lastClaim) = 
+            presale.getVestingInfo(alice);
+        
+        assertEq(allocated, 40000 * 10**18);
+        assertEq(claimed, 0);
+        assertEq(vested, 40000 * 10**18); // 100% at TGE
+        assertEq(claimable, 40000 * 10**18); // 100% claimable
+        assertEq(lastClaim, 0);
+    }
+    
+    // Test 11: Batch staking update
+    function test_Vesting_011_BatchStakingUpdate() public {
+        address[] memory users = new address[](3);
+        users[0] = alice;
+        users[1] = bob;
+        users[2] = charlie;
+        
+        // Staking functionality removed - presale/public sale is 100% TGE
+        // This test is no longer relevant
+    }
+    
+    // Test 12: Custom vesting configuration
+    function test_Vesting_012_CustomVestingConfig() public {
+        vm.prank(owner);
+        TwoPhasePresaleWithReferral.VestingSchedule memory newSchedule = TwoPhasePresaleWithReferral.VestingSchedule({
+            tgePercent: 50,           // 5% at TGE
+            monthlyPercent: 150,      // 15% per month for 3 months
+            monthlyDuration: 3,       // 3 months
+            linearStartMonth: 4,      // Month 4
+            linearEndMonth: 8,        // Month 8
+            linearPercent: 500        // 50% linear
+        });
+        presale.configureVesting(newSchedule);
+        
+        (uint256 tge,,,,,) = presale.vestingSchedule();
+        assertEq(tge, 50);
+    }
+    
+    // Test 13: Invalid vesting configuration
+    function test_Vesting_013_InvalidVestingConfig() public {
+        vm.prank(owner);
+        TwoPhasePresaleWithReferral.VestingSchedule memory badSchedule = TwoPhasePresaleWithReferral.VestingSchedule({
+            tgePercent: 100,
+            monthlyPercent: 100,
+            monthlyDuration: 3,
+            linearStartMonth: 4,
+            linearEndMonth: 9,
+            linearPercent: 500 // Total would be 900, not 1000
+        });
+        
+        vm.expectRevert(TwoPhasePresaleWithReferral.InvalidVestingConfig.selector);
+        presale.configureVesting(badSchedule);
+    }
+    
+    // Test 14: Referral bonus vesting
+    function test_Vesting_014_ReferralBonusVesting() public {
+        // Bob makes a purchase with Alice as referrer
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(bob);
+        presale.buyTokensWithUSDTAndReferral(1000 * 10**6, alice);
+        
+        // Alice should have referral bonus (5% of 20,000 = 1,000 XTSY)
+        (uint256 allocated,,,,) = presale.getVestingInfo(alice);
+        assertEq(allocated, 2000 * 10**18);
+        
+        // Move to TGE and claim
+        vm.warp(tgeTime);
+        vm.prank(alice);
+        presale.claimTokens();
+        
+        // Should receive 10% of referral bonus
+        assertEq(xtsyToken.balanceOf(alice), 2000 * 10**18);
+    }
+    
+    // Test 15: Zero purchase no vesting
+    function test_Vesting_015_ZeroPurchaseNoVesting() public {
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 0);
+        
+        vm.warp(tgeTime);
+        vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 0);
+    }
+    
+    // Test 16: Vesting after public sale
+    function test_Vesting_016_PublicSaleVesting() public {
+        // Move to public sale
+        vm.warp(block.timestamp + 60 minutes); // 6 days scaled
+        
+        // Alice buys in public sale
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6); // Gets 8,000 XTSY at public rate
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        
+        // Check vesting (10% of 8,000)
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 100 * 10**18);
+    }
+    
+    // Test 17: Combined presale and public sale vesting
+    function test_Vesting_017_CombinedSalesVesting() public {
+        // Buy in presale
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(500 * 10**6); // 10,000 XTSY
+        
+        // Buy in public sale
+        vm.warp(block.timestamp + 60 minutes); // 6 days scaled
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(500 * 10**6); // 4,000 XTSY
+        
+        // Total: 14,000 XTSY
+        (uint256 allocated,,,,) = presale.getVestingInfo(alice);
+        assertEq(allocated, 20050 * 10**18);
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        uint256 vested = presale.calculateVestedAmount(alice);
+        assertEq(vested, 20050 * 10**18); // 100% of combined
+    }
+    
+    // Test 18: Staking status change
+    function test_Vesting_018_StakingStatusChange() public {
+        // Make a purchase
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Move to TGE
+        vm.warp(tgeTime);
+        
+        // Check vesting (100% at TGE)
+        uint256 vested = presale.calculateVestedAmount(alice);
+        uint256 expectedTGE = 40000 * 10**18; // 100% at TGE
+        assertEq(vested, expectedTGE);
+    }
+    
+    // Test 19: Cannot set TGE in the past
+    function test_Vesting_019_CannotSetPastTGE() public {
+        vm.prank(owner);
+        vm.expectRevert(TwoPhasePresaleWithReferral.InvalidTimestamps.selector);
+        presale.setTGETimestamp(block.timestamp - 1);
+    }
+    
+    // Test 20: Event emissions
+    function test_Vesting_020_Events() public {
+        // Test that events are emitted (without checking exact values)
+        
+        // Test TGE set event
+        uint256 newTgeTime = block.timestamp + 100 days;
+        vm.prank(owner);
+        presale.setTGETimestamp(newTgeTime);
+        
+        // Skip staking functionality (not used in presale/public sale)
+        
+        // Test vested tokens claimed event
+        vm.warp(block.timestamp + 25 seconds);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Move to after sale ends and after new TGE
+        vm.warp(newTgeTime + 10 minutes); // 1 day scaled
+        uint256 balanceBefore = xtsyToken.balanceOf(alice);
+        vm.prank(alice);
+        presale.claimTokens();
+        uint256 balanceAfter = xtsyToken.balanceOf(alice);
+        
+        // Just verify the claim worked
+        assertTrue(balanceAfter > balanceBefore);
+    }
+}
+

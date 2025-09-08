@@ -1,0 +1,319 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {Test, console2} from "forge-std/Test.sol";
+import {ExtsyToken} from "../src/ExtsyToken.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+
+contract ExtsyTokenTest is Test {
+    ExtsyToken public token;
+    
+    address public owner;
+    address public user1;
+    address public user2;
+    address public user3;
+    
+    uint256 public constant INITIAL_SUPPLY = 0;
+    uint256 public constant TOKEN_CAP = 500_000_000 * 10**18; // 500 million XTSY
+    
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    function setUp() public {
+        owner = makeAddr("owner");
+        user1 = makeAddr("user1");
+        user2 = makeAddr("user2");
+        user3 = makeAddr("user3");
+        
+        vm.prank(owner);
+        token = new ExtsyToken(owner);
+    }
+    
+    // Basic functionality tests
+    function test_InitialState() public {
+        assertEq(token.name(), "Extsy");
+        assertEq(token.symbol(), "XTSY");
+        assertEq(token.decimals(), 18);
+        assertEq(token.totalSupply(), INITIAL_SUPPLY);
+        assertEq(token.cap(), TOKEN_CAP);
+        assertEq(token.owner(), owner);
+        assertEq(token.balanceOf(owner), INITIAL_SUPPLY);
+    }
+    
+    function test_OwnerCanMint() public {
+        uint256 mintAmount = 1000 * 10**18;
+        
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(address(0), user1, mintAmount);
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount);
+        assertEq(token.totalSupply(), mintAmount);
+    }
+    
+    function test_NonOwnerCannotMint() public {
+        uint256 mintAmount = 1000 * 10**18;
+        
+        vm.prank(user1);
+        vm.expectRevert();
+        token.mint(user2, mintAmount);
+    }
+    
+    function test_CannotMintAboveCap() public {
+        uint256 mintAmount = TOKEN_CAP + 1;
+        
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(user1, mintAmount);
+    }
+    
+    function test_CanMintUpToCap() public {
+        vm.prank(owner);
+        token.mint(user1, TOKEN_CAP);
+        
+        assertEq(token.balanceOf(user1), TOKEN_CAP);
+        assertEq(token.totalSupply(), TOKEN_CAP);
+    }
+    
+    function test_CannotMintWhenCapReached() public {
+        // First mint to cap
+        vm.prank(owner);
+        token.mint(user1, TOKEN_CAP);
+        
+        // Try to mint more
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(user2, 1);
+    }
+    
+    // Transfer tests
+    function test_Transfer() public {
+        uint256 mintAmount = 1000 * 10**18;
+        uint256 transferAmount = 100 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(user1, user2, transferAmount);
+        
+        vm.prank(user1);
+        token.transfer(user2, transferAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - transferAmount);
+        assertEq(token.balanceOf(user2), transferAmount);
+    }
+    
+    function test_TransferFrom() public {
+        uint256 mintAmount = 1000 * 10**18;
+        uint256 transferAmount = 100 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        token.approve(user2, transferAmount);
+        
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(user1, user3, transferAmount);
+        
+        vm.prank(user2);
+        token.transferFrom(user1, user3, transferAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - transferAmount);
+        assertEq(token.balanceOf(user3), transferAmount);
+        assertEq(token.allowance(user1, user2), 0);
+    }
+    
+    function test_CannotTransferMoreThanBalance() public {
+        uint256 mintAmount = 100 * 10**18;
+        uint256 transferAmount = 200 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        vm.expectRevert();
+        token.transfer(user2, transferAmount);
+    }
+    
+    // Approval tests
+    function test_Approve() public {
+        uint256 approvalAmount = 500 * 10**18;
+        
+        vm.expectEmit(true, true, false, true);
+        emit Approval(user1, user2, approvalAmount);
+        
+        vm.prank(user1);
+        token.approve(user2, approvalAmount);
+        
+        assertEq(token.allowance(user1, user2), approvalAmount);
+    }
+    
+    function test_ModifyAllowance() public {
+        uint256 initialAllowance = 100 * 10**18;
+        uint256 newAllowance = 150 * 10**18;
+        
+        vm.prank(user1);
+        token.approve(user2, initialAllowance);
+        
+        assertEq(token.allowance(user1, user2), initialAllowance);
+        
+        // Change allowance
+        vm.prank(user1);
+        token.approve(user2, newAllowance);
+        
+        assertEq(token.allowance(user1, user2), newAllowance);
+    }
+    
+    // Burn tests
+    function test_Burn() public {
+        uint256 mintAmount = 1000 * 10**18;
+        uint256 burnAmount = 200 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(user1, address(0), burnAmount);
+        
+        vm.prank(user1);
+        token.burn(burnAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - burnAmount);
+        assertEq(token.totalSupply(), mintAmount - burnAmount);
+    }
+    
+    function test_BurnFrom() public {
+        uint256 mintAmount = 1000 * 10**18;
+        uint256 burnAmount = 200 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        token.approve(user2, burnAmount);
+        
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(user1, address(0), burnAmount);
+        
+        vm.prank(user2);
+        token.burnFrom(user1, burnAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - burnAmount);
+        assertEq(token.totalSupply(), mintAmount - burnAmount);
+        assertEq(token.allowance(user1, user2), 0);
+    }
+    
+    function test_CannotBurnMoreThanBalance() public {
+        uint256 mintAmount = 100 * 10**18;
+        uint256 burnAmount = 200 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        vm.expectRevert();
+        token.burn(burnAmount);
+    }
+    
+    // Ownership tests
+    function test_TransferOwnership() public {
+        vm.expectEmit(true, true, false, true);
+        emit OwnershipTransferred(owner, user1);
+        
+        vm.prank(owner);
+        token.transferOwnership(user1);
+        
+        assertEq(token.owner(), user1);
+    }
+    
+    function test_OnlyOwnerCanTransferOwnership() public {
+        vm.prank(user1);
+        vm.expectRevert();
+        token.transferOwnership(user2);
+    }
+    
+    function test_RenounceOwnership() public {
+        vm.expectEmit(true, true, false, true);
+        emit OwnershipTransferred(owner, address(0));
+        
+        vm.prank(owner);
+        token.renounceOwnership();
+        
+        assertEq(token.owner(), address(0));
+    }
+    
+    // Edge cases and security tests
+    function test_CannotMintToZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert();
+        token.mint(address(0), 1000 * 10**18);
+    }
+    
+    function test_CannotTransferToZeroAddress() public {
+        uint256 mintAmount = 1000 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        vm.expectRevert();
+        token.transfer(address(0), 100 * 10**18);
+    }
+    
+    function test_ZeroAmountTransfersWork() public {
+        uint256 mintAmount = 1000 * 10**18;
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        token.transfer(user2, 0);
+        
+        assertEq(token.balanceOf(user1), mintAmount);
+        assertEq(token.balanceOf(user2), 0);
+    }
+    
+    // Fuzz tests
+    function testFuzz_Mint(uint256 amount) public {
+        vm.assume(amount > 0 && amount <= TOKEN_CAP);
+        
+        vm.prank(owner);
+        token.mint(user1, amount);
+        
+        assertEq(token.balanceOf(user1), amount);
+        assertEq(token.totalSupply(), amount);
+    }
+    
+    function testFuzz_Transfer(uint256 mintAmount, uint256 transferAmount) public {
+        vm.assume(mintAmount > 0 && mintAmount <= TOKEN_CAP);
+        vm.assume(transferAmount <= mintAmount);
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        token.transfer(user2, transferAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - transferAmount);
+        assertEq(token.balanceOf(user2), transferAmount);
+    }
+    
+    function testFuzz_Burn(uint256 mintAmount, uint256 burnAmount) public {
+        vm.assume(mintAmount > 0 && mintAmount <= TOKEN_CAP);
+        vm.assume(burnAmount <= mintAmount);
+        
+        vm.prank(owner);
+        token.mint(user1, mintAmount);
+        
+        vm.prank(user1);
+        token.burn(burnAmount);
+        
+        assertEq(token.balanceOf(user1), mintAmount - burnAmount);
+        assertEq(token.totalSupply(), mintAmount - burnAmount);
+    }
+}
