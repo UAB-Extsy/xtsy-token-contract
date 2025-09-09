@@ -538,7 +538,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
             purchase.publicSalePurchased += usdAmount;
         }
         purchase.tokensAllocated += tokensToAllocate;
-        purchase.tokensClaimed += tokensToAllocate;
+        // Note: tokensClaimed remains 0 until tokens are actually distributed
         
         // Handle referral info update
         if (referralEnabled && referrer != address(0) && referrer != msg.sender) {
@@ -552,9 +552,6 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         } else {
             emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, phase);
         }
-        
-        // Transfer tokens immediately to buyer (only their purchased amount)
-        _safeTransfer(address(saleToken), msg.sender, tokensToAllocate);
         
         // Update totals
         if (isUsdt) {
@@ -630,7 +627,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
             purchase.publicSalePurchased += usdAmount;
         }
         purchase.tokensAllocated += tokensToAllocate;
-        purchase.tokensClaimed += tokensToAllocate;
+        // Note: tokensClaimed remains 0 until tokens are actually distributed
         
         // Handle referral info update
         if (referralEnabled && referrer != address(0) && referrer != msg.sender) {
@@ -644,9 +641,6 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         } else {
             emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, phase);
         }
-        
-        // Transfer tokens immediately to buyer (only their purchased amount)
-        _safeTransfer(address(saleToken), msg.sender, tokensToAllocate);
         
         // Update ETH total
         totalEthRaised += msg.value;
@@ -895,7 +889,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     
     function distributeTokensCrossChain(
         address buyer,
-        uint256 usdAmount,
+        uint256 saleTokenAmount,
         uint256 chainId,
         bool isPresale,
         address referrer,
@@ -904,52 +898,34 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         bytes calldata signature
     ) external nonReentrant whenNotPaused onlyOwner {
         // Verify cross-chain backend signature with expiry
-        _verifyCrossChainSignature(buyer, usdAmount, chainId, isPresale, referrer, nonce, expiry, signature);
+        _verifyCrossChainSignature(buyer, saleTokenAmount, chainId, isPresale, referrer, nonce, expiry, signature);
         
         if (address(saleToken) == address(0)) revert ZeroAddress();
         if (buyer == address(0)) revert ZeroAddress();
-        if (usdAmount == 0) revert ZeroAmount();
-        
-        // Calculate tokens to allocate
-        uint256 currentRate = isPresale ? saleConfig.presaleRate : getCurrentRate();
-        uint256 tokensToAllocate = (usdAmount * 10**18) / currentRate;
+        if (saleTokenAmount == 0) revert ZeroAmount();
         
         // Check caps
         if (isPresale) {
-            if (totalPresaleSold + tokensToAllocate > categoryCaps[VestingCategory.Presale]) {
+            if (totalPresaleSold + saleTokenAmount > categoryCaps[VestingCategory.Presale]) {
                 revert InsufficientTokensAvailable();
             }
-            totalPresaleSold += tokensToAllocate;
+            totalPresaleSold += saleTokenAmount;
         } else {
-            if (totalPublicSaleSold + tokensToAllocate > categoryCaps[VestingCategory.PublicSale]) {
+            if (totalPublicSaleSold + saleTokenAmount > categoryCaps[VestingCategory.PublicSale]) {
                 revert InsufficientTokensAvailable();
             }
-            totalPublicSaleSold += tokensToAllocate;
+            totalPublicSaleSold += saleTokenAmount;
         }
         
         // Update user purchase data
         UserPurchase storage purchase = userPurchases[buyer];
-        if (isPresale) {
-            purchase.presalePurchased += usdAmount;
-        } else {
-            purchase.publicSalePurchased += usdAmount;
-        }
-        purchase.tokensAllocated += tokensToAllocate;
-        purchase.tokensClaimed += tokensToAllocate;
-        
-        // Handle referral info update (cross-chain doesn't handle payment bonuses)
-        if (referralEnabled && referrer != address(0) && referrer != buyer) {
-            purchase.referrer = referrer;
-            
-            ReferralInfo storage refInfo = referralInfo[referrer];
-            refInfo.totalReferred++;
-            refInfo.totalReferralVolume += usdAmount;
-        }
+        purchase.tokensAllocated += saleTokenAmount;
+        purchase.tokensClaimed += saleTokenAmount; // Mark tokens as claimed when distributed
         
         // Transfer tokens immediately to buyer
-        _safeTransfer(address(saleToken), buyer, tokensToAllocate);
+        _safeTransfer(address(saleToken), buyer, saleTokenAmount);
         
-        emit CrossChainTokensDistributed(buyer, tokensToAllocate, chainId, isPresale ? SalePhase.PresaleWhitelist : SalePhase.PublicSale);
+        emit CrossChainTokensDistributed(buyer, saleTokenAmount, chainId, isPresale ? SalePhase.PresaleWhitelist : SalePhase.PublicSale);
     }
     
     // =============================================================================
@@ -1002,5 +978,15 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         SalePhase _phase
     ) {
         return (totalPresaleSold, totalPublicSaleSold, totalUsdtRaised, totalUsdcRaised, totalEthRaised, getCurrentPhase());
+    }
+    
+    /**
+     * @dev Get the number of tokens a user can claim (purchased but not yet distributed)
+     * @param user The user address
+     * @return The number of tokens that can be claimed
+     */
+    function getClaimablePurchaseTokens(address user) external view returns (uint256) {
+        UserPurchase memory purchase = userPurchases[user];
+        return purchase.tokensAllocated - purchase.tokensClaimed;
     }
 }

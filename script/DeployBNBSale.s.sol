@@ -38,11 +38,11 @@ contract DeployBNBSale is Script {
         
         console.log("\n2. Deploying BNB Sale Contract...");
         
-        address backendSigner = _getAddress("BACKEND_SIGNER_ADDRESS", deployer);
+        address backendSigner = _getAddress("BACKEND_SIGNER_ADDRESS", 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
         
         // BSC mainnet BNB/USD price feed: 0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE
         // BSC testnet BNB/USD: 0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526
-        address bnbUsdPriceFeed = _getAddress("BNB_USD_PRICE_FEED", 0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE);
+        address bnbUsdPriceFeed = _getAddress("BNB_USD_PRICE_FEED", 0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);
         
         presale = new xtsySaleBNB(
             usdtTokenAddress,

@@ -106,6 +106,8 @@ contract DeployCleanPresale is Script {
         // Set ETH/USD price feed for Sepolia testnet
         address ethUsdPriceFeed = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
         presale.setEthUsdPriceFeed(ethUsdPriceFeed);
+        presale.setBackendSigner(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
+        presale.setCrossChainBackendSigner(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
         console.log("   ETH/USD price feed set to:", ethUsdPriceFeed);
         
         // =============================================================================
@@ -115,15 +117,14 @@ contract DeployCleanPresale is Script {
         console.log("\n5. Configuring Sale Timing...");
         
         uint256 currentTime = block.timestamp;
-        uint256 whitelistPeriod = 10 minutes;
-        uint256 presalePeriod = 2 hours;
+        uint256 whitelistPeriod = 0;
+        uint256 presalePeriod = 2 days;
         uint256 publicSalePeriod = 2 hours;
-        
         xtsySale.SaleConfig memory saleConfig = xtsySale.SaleConfig({
-            presaleStartTime: currentTime + whitelistPeriod,                        // Start after 2h whitelist period
-            presaleEndTime: currentTime + whitelistPeriod + presalePeriod,          // End after 2h presale
-            publicSaleStartTime: currentTime + whitelistPeriod + presalePeriod + 2 hours, // Start 1 second after presale ends
-            publicSaleEndTime: currentTime + whitelistPeriod + presalePeriod + publicSalePeriod + 1, // End after 2h public sale
+            presaleStartTime: currentTime + whitelistPeriod,                        // Start after 30min whitelist period
+            presaleEndTime: currentTime + whitelistPeriod + presalePeriod,          // End after 30min presale
+            publicSaleStartTime: currentTime + whitelistPeriod + presalePeriod + 1, // Start 1 second after presale ends
+            publicSaleEndTime: currentTime + whitelistPeriod + presalePeriod + publicSalePeriod + 1, // End after 30min public sale
             presaleRate: 25000,         // $0.025 per token (25000 micro-USD)
             publicSaleStartRate: 100000, // $0.10 per token (100000 micro-USD)
             priceIncreaseInterval: 30 minutes, // Price increases every 30 minutes

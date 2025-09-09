@@ -146,15 +146,15 @@ contract xtsySalePOL is ReentrancyGuard, Ownable, Pausable {
     event SalePhaseUpdated(SalePhase newPhase);
     event FundsWithdrawn(uint256 usdtAmount, uint256 usdcAmount, uint256 polAmount);
     event SignatureUsed(bytes32 indexed signatureHash);
-    event CrossChainPurchase(
-        address indexed buyer,
-        uint256 usdAmount,
-        uint256 expectedTokens,
-        SalePhase phase,
-        address referrer,
-        string paymentMethod,
-        uint256 chainId
-    );
+    // event CrossChainPurchase(
+    //     address indexed buyer,
+    //     uint256 usdAmount,
+    //     uint256 expectedTokens,
+    //     SalePhase phase,
+    //     address referrer,
+    //     string paymentMethod,
+    //     uint256 chainId
+    // );
     
     // =============================================================================
     // ERRORS
@@ -254,14 +254,14 @@ contract xtsySalePOL is ReentrancyGuard, Ownable, Pausable {
     // PURCHASE FUNCTIONS - Only record purchases, no token allocation
     // =============================================================================
     
-    function buyTokensWithPOL(
-        uint256 nonce,
-        bytes calldata signature
-    ) external payable nonReentrant whenNotPaused {
-        _buyTokensWithPOL(address(0), nonce, signature);
-    }
+    // function buyTokensWithPOL(
+    //     uint256 nonce,
+    //     bytes calldata signature
+    // ) external payable nonReentrant whenNotPaused {
+    //     _buyTokensWithPOL(address(0), nonce, signature);
+    // }
     
-    function buyTokensWithPOLAndReferral(
+    function buyTokensWithPOL(
         address referrer,
         uint256 nonce,
         bytes calldata signature
@@ -406,7 +406,7 @@ contract xtsySalePOL is ReentrancyGuard, Ownable, Pausable {
         emit PurchaseRecorded(buyer, usdAmount, expectedTokens, currentPhase, referrer, paymentMethod);
         
         // Emit cross-chain event for backend processing (Polygon Chain ID = 137)
-        emit CrossChainPurchase(buyer, usdAmount, expectedTokens, currentPhase, referrer, paymentMethod, 137);
+        // emit CrossChainPurchase(buyer, usdAmount, expectedTokens, currentPhase, referrer, paymentMethod, 137);
     }
     
     // =============================================================================

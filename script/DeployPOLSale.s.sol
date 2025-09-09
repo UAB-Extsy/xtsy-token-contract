@@ -64,8 +64,8 @@ contract DeployPOLSale is Script {
         
         uint256 currentTime = block.timestamp;
         uint256 whitelistPeriod = 10 minutes;
-        uint256 presalePeriod = 2 hours;
-        uint256 publicSalePeriod = 2 hours;
+        uint256 presalePeriod = 30 minutes;
+        uint256 publicSalePeriod = 30 minutes;
         
         xtsySalePOL.SaleConfig memory saleConfig = xtsySalePOL.SaleConfig({
             presaleStartTime: currentTime + whitelistPeriod,
