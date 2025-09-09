@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/xtsySaleBNB.sol";
-import {MockUSDT} from "./mocks/MockUSDT.sol";
-import {MockUSDC} from "./mocks/MockUSDC.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 
 contract BNBSaleTest is Test {
     xtsySaleBNB public presale;
@@ -24,13 +24,13 @@ contract BNBSaleTest is Test {
         usdtToken = new MockUSDT();
         usdcToken = new MockUSDC();
         
-        // Deploy BNB presale (without price feed for simplicity)
+        // Deploy BNB presale (mock price feed address)
         presale = new xtsySaleBNB(
             address(usdtToken),
             address(usdcToken),
+            address(0x1), // mock price feed address
             owner,
-            owner,  // backend signer
-            address(0) // no price feed for test
+            owner  // backend signer
         );
         
         // Configure sale with scaled times

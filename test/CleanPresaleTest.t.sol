@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../src/xtsySale.sol";
 import "../src/ExtsyToken.sol";
-import {MockUSDT} from "./mocks/MockUSDT.sol";
-import {MockUSDC} from "./mocks/MockUSDC.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 
 contract CleanPresaleTest is Test {
     xtsySale public presale;
@@ -37,7 +37,8 @@ contract CleanPresaleTest is Test {
             address(usdtToken),
             address(usdcToken),
             owner,
-            owner  // backend signer
+            owner,  // backend signer
+            owner   // crosschain backend signer
         );
         
         // Configure sale with scaled times
@@ -172,35 +173,39 @@ contract CleanPresaleTest is Test {
     }
     
     function testTGEClaiming() public {
-        // Purchase during presale
-        vm.warp(block.timestamp + 25 seconds);
-        uint256 purchaseAmount = 1000 * 10**6;
-        uint256 nonce = 4;
-        bytes memory signature = generateSignature(alice, purchaseAmount, nonce);
-        vm.prank(alice);
-        presale.buyTokensWithUSDT(purchaseAmount, nonce, signature);
+        // Allocate tokens to alice for presale category
+        uint256 allocationAmount = 1_000_000 * 10**18; // 1M tokens
+        vm.prank(owner);
+        presale.allocateTokens(alice, xtsySale.VestingCategory.Presale, allocationAmount);
         
-        // Try to claim before TGE
+        // Try to claim before TGE - should fail with TGENotSet
         vm.expectRevert(xtsySale.TGENotSet.selector);
         vm.prank(alice);
-        presale.claimTGETokens();
+        presale.claimTGETokens(xtsySale.VestingCategory.Presale);
         
-        // Warp to TGE
-        vm.warp(block.timestamp + 140 minutes);
+        // Set TGE timestamp to now + 1 hour
+        vm.prank(owner);
+        presale.setTGETimestamp(block.timestamp + 1 hours);
+        
+        // Warp to TGE time
+        vm.warp(block.timestamp + 1 hours);
         
         uint256 aliceBalanceBefore = xtsyToken.balanceOf(alice);
         vm.prank(alice);
-        presale.claimTGETokens();
+        presale.claimTGETokens(xtsySale.VestingCategory.Presale);
         
         uint256 aliceBalanceAfter = xtsyToken.balanceOf(alice);
-        uint256 expectedTokens = (purchaseAmount * 10**18) / 25000;
         
-        assertEq(aliceBalanceAfter - aliceBalanceBefore, expectedTokens);
+        // For presale category, check the TGE percentage (should be 100% for presale/public)
+        (,, xtsySale.VestingConfig memory config) = presale.getCategoryInfo(xtsySale.VestingCategory.Presale);
+        uint256 expectedTGEAmount = (allocationAmount * config.tgePercent) / 1000;
         
-        // Check can't claim again
+        assertEq(aliceBalanceAfter - aliceBalanceBefore, expectedTGEAmount);
+        
+        // Check can't claim TGE again
         vm.expectRevert(xtsySale.NoTokensToClaim.selector);
         vm.prank(alice);
-        presale.claimTGETokens();
+        presale.claimTGETokens(xtsySale.VestingCategory.Presale);
     }
     
     function testTeamAllocation() public {

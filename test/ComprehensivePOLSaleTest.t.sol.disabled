@@ -1,0 +1,764 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../src/xtsySalePOL.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+
+/**
+ * @title ComprehensivePOLSaleTest
+ * @dev Extensive test suite for xtsySalePOL contract covering all functionality
+ */
+contract ComprehensivePOLSaleTest is Test {
+    xtsySalePOL public presale;
+    MockUSDT public usdtToken;
+    MockUSDC public usdcToken;
+    
+    // Test addresses
+    uint256 ownerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    address public owner = vm.addr(ownerPrivateKey);
+    address public backendSigner = address(0x123);
+    address public alice = address(0x2);
+    address public bob = address(0x3);
+    address public charlie = address(0x4);
+    address public referrer = address(0x5);
+    
+    // Mock price feed address
+    address public mockPriceFeed = address(0x1);
+    
+    // Test constants
+    uint256 constant PRESALE_RATE = 100000; // $0.10 per token
+    uint256 constant PUBLIC_RATE = 350000;  // $0.35 per token
+    uint256 constant PRICE_INCREASE = 17500; // $0.0175
+    uint256 constant PRICE_INTERVAL = 6 days;
+    uint256 constant POL_USD_PRICE = 50000000000; // $0.5 with 8 decimals
+    
+    event TokensPurchased(
+        address indexed buyer,
+        uint256 usdAmount,
+        uint256 tokensReceived,
+        bool isPresale
+    );
+    
+    event POLPurchase(
+        address indexed buyer,
+        uint256 polAmount,
+        uint256 usdAmount,
+        uint256 tokensReceived
+    );
+
+    function setUp() public {
+        vm.startPrank(owner);
+        
+        // Deploy tokens
+        usdtToken = new MockUSDT();
+        usdcToken = new MockUSDC();
+        
+        // Deploy POL presale contract
+        presale = new xtsySalePOL(
+            address(usdtToken),
+            address(usdcToken),
+            mockPriceFeed,
+            owner,
+            backendSigner
+        );
+        
+        // Configure sale timing
+        xtsySalePOL.SaleConfig memory config = xtsySalePOL.SaleConfig({
+            presaleStartTime: block.timestamp + 1 hours,
+            presaleEndTime: block.timestamp + 8 days,
+            publicSaleStartTime: block.timestamp + 8 days,
+            publicSaleEndTime: block.timestamp + 30 days,
+            presaleRate: PRESALE_RATE,
+            publicSaleStartRate: PUBLIC_RATE,
+            priceIncreaseInterval: PRICE_INTERVAL,
+            priceIncreaseAmount: PRICE_INCREASE
+        });
+        
+        presale.configureSale(config);
+        
+        // Mint test tokens to users
+        usdtToken.mint(alice, 100_000 * 10**6);
+        usdcToken.mint(alice, 100_000 * 10**6);
+        usdtToken.mint(bob, 100_000 * 10**6);
+        usdcToken.mint(bob, 100_000 * 10**6);
+        
+        vm.stopPrank();
+        
+        // Approve tokens
+        vm.startPrank(alice);
+        usdtToken.approve(address(presale), type(uint256).max);
+        usdcToken.approve(address(presale), type(uint256).max);
+        vm.stopPrank();
+        
+        vm.startPrank(bob);
+        usdtToken.approve(address(presale), type(uint256).max);
+        usdcToken.approve(address(presale), type(uint256).max);
+        vm.stopPrank();
+        
+        // Mock POL price feed
+        vm.mockCall(
+            mockPriceFeed,
+            abi.encodeWithSignature("latestRoundData()"),
+            abi.encode(uint80(1), int256(POL_USD_PRICE), uint256(block.timestamp), uint256(block.timestamp), uint80(1))
+        );
+    }
+    
+    // Helper function to generate backend signature
+    function generateSignature(address user, uint256 amount, uint256 nonce) internal view returns (bytes memory) {
+        bytes32 messageHash = keccak256(abi.encodePacked(user, amount, nonce, address(presale)));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, ethSignedMessageHash);
+        return abi.encodePacked(r, s, v);
+    }
+    
+    // Helper to deal POL tokens to address
+    function dealPOL(address to, uint256 amount) internal {
+        vm.deal(to, amount);
+    }
+
+    // ============================================================================
+    // BASIC FUNCTIONALITY TESTS
+    // ============================================================================
+    
+    function test_POL_001_InitialState() public {
+        assertEq(address(presale.usdtToken()), address(usdtToken));
+        assertEq(address(presale.usdcToken()), address(usdcToken));
+        assertEq(address(presale.polUsdPriceFeed()), mockPriceFeed);
+        assertEq(presale.owner(), owner);
+        assertTrue(presale.referralEnabled());
+        assertEq(presale.referralBonusPercent(), 50); // 5%
+    }
+    
+    function test_POL_002_SalePhases() public {
+        // Not started
+        assertEq(uint(presale.getCurrentPhase()), uint(xtsySalePOL.SalePhase.NotStarted));
+        
+        // Presale
+        vm.warp(block.timestamp + 1 hours);
+        assertEq(uint(presale.getCurrentPhase()), uint(xtsySalePOL.SalePhase.PresaleWhitelist));
+        
+        // Public sale
+        vm.warp(block.timestamp + 8 days);
+        assertEq(uint(presale.getCurrentPhase()), uint(xtsySalePOL.SalePhase.PublicSale));
+        
+        // Ended
+        vm.warp(block.timestamp + 30 days);
+        assertEq(uint(presale.getCurrentPhase()), uint(xtsySalePOL.SalePhase.Ended));
+    }
+
+    // ============================================================================
+    // POL PURCHASE TESTS
+    // ============================================================================
+    
+    function test_POL_003_POLPurchasePresale() public {
+        vm.warp(block.timestamp + 1 hours); // Start presale
+        
+        uint256 polAmount = 1000 * 10**18; // 1000 POL
+        uint256 nonce = 1;
+        bytes memory signature = generateSignature(alice, 0, nonce); // 0 for POL purchases
+        
+        // Calculate expected USD value: 1000 POL * $0.5 = $500
+        uint256 expectedUSDAmount = (polAmount * POL_USD_PRICE) / 10**26; // Convert to 6 decimals
+        uint256 expectedTokens = (expectedUSDAmount * 10**18) / PRESALE_RATE;
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectEmit(true, true, true, true);
+        emit POLPurchase(alice, polAmount, expectedUSDAmount, expectedTokens);
+        
+        uint256 contractBalanceBefore = address(presale).balance;
+        
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: polAmount}(nonce, signature);
+        
+        uint256 contractBalanceAfter = address(presale).balance;
+        assertEq(contractBalanceAfter - contractBalanceBefore, polAmount);
+        
+        // Check purchase tracking
+        (uint256 presalePurchased, uint256 publicPurchased, uint256 polSpent,) = presale.getBuyerInfo(alice);
+        assertEq(presalePurchased, expectedUSDAmount);
+        assertEq(publicPurchased, 0);
+        assertEq(polSpent, polAmount);
+    }
+    
+    function test_POL_004_POLPurchasePublicSale() public {
+        vm.warp(block.timestamp + 8 days + 1 hours); // Start public sale
+        
+        uint256 polAmount = 500 * 10**18; // 500 POL
+        uint256 nonce = 2;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        uint256 expectedUSDAmount = (polAmount * POL_USD_PRICE) / 10**26;
+        uint256 expectedTokens = (expectedUSDAmount * 10**18) / PUBLIC_RATE;
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: polAmount}(nonce, signature);
+        
+        (uint256 presalePurchased, uint256 publicPurchased,,) = presale.getBuyerInfo(alice);
+        assertEq(presalePurchased, 0);
+        assertEq(publicPurchased, expectedUSDAmount);
+    }
+    
+    function test_POL_005_POLReferralPurchase() public {
+        vm.warp(block.timestamp + 1 hours); // Start presale
+        
+        uint256 polAmount = 1000 * 10**18;
+        uint256 nonce = 3;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        uint256 referrerBalanceBefore = referrer.balance;
+        uint256 expectedPOLBonus = (polAmount * 50) / 1000; // 5%
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.prank(alice);
+        presale.buyTokensWithPOLAndReferral{value: polAmount}(referrer, nonce, signature);
+        
+        uint256 referrerBalanceAfter = referrer.balance;
+        assertEq(referrerBalanceAfter - referrerBalanceBefore, expectedPOLBonus);
+        
+        // Check referral tracking
+        (uint256 totalReferred, uint256 totalVolume) = presale.getReferralInfo(referrer);
+        assertEq(totalReferred, 1);
+        uint256 expectedUSDVolume = (polAmount * POL_USD_PRICE) / 10**26;
+        assertEq(totalVolume, expectedUSDVolume);
+    }
+    
+    function test_POL_006_CombinedUSDTAndPOLPurchases() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        // USDT purchase first
+        uint256 usdtAmount = 1000 * 10**6;
+        uint256 nonce1 = 4;
+        bytes memory sig1 = generateSignature(alice, usdtAmount, nonce1);
+        
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(usdtAmount, nonce1, sig1);
+        
+        // POL purchase second
+        uint256 polAmount = 2000 * 10**18;
+        uint256 nonce2 = 5;
+        bytes memory sig2 = generateSignature(alice, 0, nonce2);
+        
+        dealPOL(alice, 10000 * 10**18);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: polAmount}(nonce2, sig2);
+        
+        // Verify both purchases tracked
+        (uint256 presalePurchased,, uint256 polSpent,) = presale.getBuyerInfo(alice);
+        uint256 expectedPOLUSD = (polAmount * POL_USD_PRICE) / 10**26;
+        assertEq(presalePurchased, usdtAmount + expectedPOLUSD);
+        assertEq(polSpent, polAmount);
+    }
+
+    // ============================================================================
+    // MIXED PAYMENT CALCULATIONS TESTS
+    // ============================================================================
+    
+    function test_POL_007_GetTokenAmountForPayment() public {
+        vm.warp(block.timestamp + 1 hours); // Presale
+        
+        uint256 usdAmount = 1000 * 10**6; // $1000 USDT
+        uint256 polAmount = 2000 * 10**18; // 2000 POL = $1000
+        
+        (uint256 tokensFromUSD, uint256 tokensFromPOL) = presale.getTokenAmountForPayment(usdAmount, polAmount);
+        
+        uint256 expectedUSDTokens = (usdAmount * 10**18) / PRESALE_RATE;
+        uint256 expectedPOLUSD = (polAmount * POL_USD_PRICE) / 10**26;
+        uint256 expectedPOLTokens = (expectedPOLUSD * 10**18) / PRESALE_RATE;
+        
+        assertEq(tokensFromUSD, expectedUSDTokens);
+        assertEq(tokensFromPOL, expectedPOLTokens);
+    }
+    
+    function test_POL_008_GetTotalCostAndTokens() public {
+        vm.warp(block.timestamp + 8 days + 1 hours); // Public sale
+        
+        uint256 targetTokens = 10000 * 10**18; // Want 10,000 tokens
+        
+        (uint256 totalUSDCost, uint256 totalPOLCost) = presale.getTotalCostAndTokens(targetTokens);
+        
+        uint256 expectedUSDCost = (targetTokens * PUBLIC_RATE) / 10**18;
+        uint256 expectedPOLCost = (expectedUSDCost * 10**26) / POL_USD_PRICE;
+        
+        assertEq(totalUSDCost, expectedUSDCost);
+        assertEq(totalPOLCost, expectedPOLCost);
+    }
+
+    // ============================================================================
+    // DYNAMIC PRICING WITH POL TESTS
+    // ============================================================================
+    
+    function test_POL_009_DynamicPricingPOLPurchase() public {
+        vm.warp(block.timestamp + 8 days + PRICE_INTERVAL + 1 hours);
+        
+        uint256 currentRate = presale.getCurrentRate();
+        assertEq(currentRate, PUBLIC_RATE + PRICE_INCREASE);
+        
+        uint256 polAmount = 1000 * 10**18;
+        uint256 nonce = 6;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        uint256 expectedUSDAmount = (polAmount * POL_USD_PRICE) / 10**26;
+        uint256 expectedTokens = (expectedUSDAmount * 10**18) / currentRate;
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: polAmount}(nonce, signature);
+        
+        (, uint256 publicPurchased,,) = presale.getBuyerInfo(alice);
+        assertEq(publicPurchased, expectedUSDAmount);
+    }
+
+    // ============================================================================
+    // PRICE FEED INTERACTION TESTS
+    // ============================================================================
+    
+    function test_POL_010_PriceFeedFailure() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Mock price feed to return stale data (more than 1 hour old)
+        vm.mockCall(
+            mockPriceFeed,
+            abi.encodeWithSignature("latestRoundData()"),
+            abi.encode(uint80(1), int256(POL_USD_PRICE), uint256(block.timestamp - 3700), uint256(block.timestamp - 3700), uint80(1))
+        );
+        
+        uint256 nonce = 7;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectRevert(xtsySalePOL.StalePriceData.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+    }
+    
+    function test_POL_011_NegativePrice() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Mock negative price
+        vm.mockCall(
+            mockPriceFeed,
+            abi.encodeWithSignature("latestRoundData()"),
+            abi.encode(uint80(1), int256(-100), uint256(block.timestamp), uint256(block.timestamp), uint80(1))
+        );
+        
+        uint256 nonce = 8;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectRevert(xtsySalePOL.InvalidPriceData.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+    }
+
+    // ============================================================================
+    // ACCESS CONTROL & CONFIGURATION TESTS
+    // ============================================================================
+    
+    function test_POL_012_UpdatePOLPriceFeed() public {
+        address newPriceFeed = address(0x999);
+        
+        // Should fail for non-owner
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", alice));
+        vm.prank(alice);
+        presale.setPolUsdPriceFeed(newPriceFeed);
+        
+        // Should work for owner
+        vm.prank(owner);
+        presale.setPolUsdPriceFeed(newPriceFeed);
+        
+        assertEq(address(presale.polUsdPriceFeed()), newPriceFeed);
+    }
+    
+    function test_POL_013_PauseUnpause() public {
+        vm.prank(owner);
+        presale.pause();
+        
+        vm.warp(block.timestamp + 1 hours);
+        uint256 nonce = 9;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectRevert(abi.encodeWithSignature("EnforcedPause()"));
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+        
+        // Unpause and test works
+        vm.prank(owner);
+        presale.unpause();
+        
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+    }
+
+    // ============================================================================
+    // ERROR CONDITION TESTS
+    // ============================================================================
+    
+    function test_POL_014_ZeroPOLPurchase() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        uint256 nonce = 10;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        vm.expectRevert(xtsySalePOL.InvalidAmount.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 0}(nonce, signature);
+    }
+    
+    function test_POL_015_InvalidSignaturePOL() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        bytes memory badSignature = "invalid";
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectRevert(xtsySalePOL.InvalidSignature.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(1, badSignature);
+    }
+    
+    function test_POL_016_SaleNotActivePOL() public {
+        // Before sale starts
+        uint256 nonce = 11;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        vm.expectRevert(xtsySalePOL.SaleNotActive.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+        
+        // After sale ends
+        vm.warp(block.timestamp + 31 days);
+        vm.expectRevert(xtsySalePOL.SaleNotActive.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+    }
+    
+    function test_POL_017_DoubleSpendNoncePOL() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        uint256 nonce = 12;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        
+        // First purchase should work
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+        
+        // Second purchase with same nonce should fail
+        vm.expectRevert(xtsySalePOL.NonceAlreadyUsed.selector);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+    }
+
+    // ============================================================================
+    // WITHDRAWAL TESTS
+    // ============================================================================
+    
+    function test_POL_018_WithdrawPOL() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Make some POL purchases to accumulate funds
+        uint256 polAmount = 5000 * 10**18;
+        for (uint i = 0; i < 3; i++) {
+            uint256 nonce = 13 + i;
+            bytes memory signature = generateSignature(alice, 0, nonce);
+            
+            dealPOL(alice, 10000 * 10**18);
+            vm.prank(alice);
+            presale.buyTokensWithPOL{value: polAmount}(nonce, signature);
+        }
+        
+        uint256 contractBalance = address(presale).balance;
+        uint256 ownerBalanceBefore = owner.balance;
+        
+        // Should fail for non-owner
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", alice));
+        vm.prank(alice);
+        presale.withdrawPOL();
+        
+        // Should work for owner
+        vm.prank(owner);
+        presale.withdrawPOL();
+        
+        uint256 ownerBalanceAfter = owner.balance;
+        assertEq(ownerBalanceAfter - ownerBalanceBefore, contractBalance);
+        assertEq(address(presale).balance, 0);
+    }
+    
+    function test_POL_019_WithdrawTokens() public {
+        // Mint some USDT to contract for testing
+        usdtToken.mint(address(presale), 10000 * 10**6);
+        
+        uint256 ownerBalanceBefore = usdtToken.balanceOf(owner);
+        uint256 contractBalance = usdtToken.balanceOf(address(presale));
+        
+        // Should fail for non-owner
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", alice));
+        vm.prank(alice);
+        presale.withdrawTokens(address(usdtToken));
+        
+        // Should work for owner
+        vm.prank(owner);
+        presale.withdrawTokens(address(usdtToken));
+        
+        uint256 ownerBalanceAfter = usdtToken.balanceOf(owner);
+        assertEq(ownerBalanceAfter - ownerBalanceBefore, contractBalance);
+        assertEq(usdtToken.balanceOf(address(presale)), 0);
+    }
+
+    // ============================================================================
+    // COMPLEX SCENARIO TESTS
+    // ============================================================================
+    
+    function test_POL_020_MultiUserMultiPhase() public {
+        // Presale phase - Alice buys with USDT and POL
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Alice USDT purchase
+        uint256 nonce1 = 16;
+        bytes memory sig1 = generateSignature(alice, 1000 * 10**6, nonce1);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6, nonce1, sig1);
+        
+        // Alice POL purchase
+        uint256 nonce2 = 17;
+        bytes memory sig2 = generateSignature(alice, 0, nonce2);
+        dealPOL(alice, 10000 * 10**18);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce2, sig2);
+        
+        // Bob POL purchase with referral
+        uint256 nonce3 = 18;
+        bytes memory sig3 = generateSignature(bob, 0, nonce3);
+        dealPOL(bob, 10000 * 10**18);
+        vm.prank(bob);
+        presale.buyTokensWithPOLAndReferral{value: 2000 * 10**18}(alice, nonce3, sig3);
+        
+        // Public sale phase
+        vm.warp(block.timestamp + 8 days);
+        
+        // Charlie public sale POL purchase
+        uint256 nonce4 = 19;
+        bytes memory sig4 = generateSignature(charlie, 0, nonce4);
+        dealPOL(charlie, 10000 * 10**18);
+        vm.prank(charlie);
+        presale.buyTokensWithPOL{value: 500 * 10**18}(nonce4, sig4);
+        
+        // Verify all purchases tracked correctly
+        (uint256 alicePresale, uint256 alicePublic, uint256 alicePOL,) = presale.getBuyerInfo(alice);
+        assertTrue(alicePresale > 0);
+        assertEq(alicePublic, 0);
+        assertEq(alicePOL, 1000 * 10**18);
+        
+        (uint256 bobPresale, uint256 bobPublic, uint256 bobPOL,) = presale.getBuyerInfo(bob);
+        uint256 expectedBobUSD = (2000 * 10**18 * POL_USD_PRICE) / 10**26;
+        assertEq(bobPresale, expectedBobUSD);
+        assertEq(bobPublic, 0);
+        assertEq(bobPOL, 2000 * 10**18);
+        
+        (uint256 charliePresale, uint256 charliePublic, uint256 charliePOL,) = presale.getBuyerInfo(charlie);
+        assertEq(charliePresale, 0);
+        assertTrue(charliePublic > 0);
+        assertEq(charliePOL, 500 * 10**18);
+        
+        // Check referral info
+        (uint256 totalReferred, uint256 totalVolume) = presale.getReferralInfo(alice);
+        assertEq(totalReferred, 1);
+        assertEq(totalVolume, expectedBobUSD);
+        
+        // Check Alice received referral bonus
+        assertTrue(alice.balance > 0);
+    }
+    
+    function test_POL_021_PriceFeedUpdate() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Purchase with initial price
+        uint256 nonce1 = 20;
+        bytes memory sig1 = generateSignature(alice, 0, nonce1);
+        dealPOL(alice, 10000 * 10**18);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce1, sig1);
+        
+        (uint256 initialPresale,,,) = presale.getBuyerInfo(alice);
+        
+        // Update POL price to $0.8
+        uint256 newPOLPrice = 80000000000; // $0.8 with 8 decimals
+        vm.mockCall(
+            mockPriceFeed,
+            abi.encodeWithSignature("latestRoundData()"),
+            abi.encode(uint80(2), int256(newPOLPrice), uint256(block.timestamp), uint256(block.timestamp), uint80(2))
+        );
+        
+        // Purchase with new price
+        uint256 nonce2 = 21;
+        bytes memory sig2 = generateSignature(bob, 0, nonce2);
+        dealPOL(bob, 10000 * 10**18);
+        vm.prank(bob);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce2, sig2);
+        
+        (uint256 bobPresale,,,) = presale.getBuyerInfo(bob);
+        
+        // Bob should have received more USD value for same POL amount
+        assertTrue(bobPresale > initialPresale);
+        
+        uint256 expectedBobUSD = (1000 * 10**18 * newPOLPrice) / 10**26;
+        assertEq(bobPresale, expectedBobUSD);
+    }
+    
+    function test_POL_022_EmergencyWithdrawal() public {
+        // Make purchases to accumulate funds
+        vm.warp(block.timestamp + 1 hours);
+        
+        // POL purchases
+        for (uint i = 0; i < 5; i++) {
+            uint256 nonce = 22 + i;
+            bytes memory signature = generateSignature(alice, 0, nonce);
+            dealPOL(alice, 10000 * 10**18);
+            vm.prank(alice);
+            presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+        }
+        
+        // USDT purchases
+        for (uint i = 0; i < 3; i++) {
+            uint256 nonce = 27 + i;
+            bytes memory signature = generateSignature(bob, 1000 * 10**6, nonce);
+            vm.prank(bob);
+            presale.buyTokensWithUSDT(1000 * 10**6, nonce, signature);
+        }
+        
+        uint256 initialPOLBalance = address(presale).balance;
+        uint256 initialUSDTBalance = usdtToken.balanceOf(address(presale));
+        uint256 initialUSDCBalance = usdcToken.balanceOf(address(presale));
+        
+        assertTrue(initialPOLBalance > 0);
+        assertTrue(initialUSDTBalance > 0);
+        
+        // Emergency withdrawal
+        vm.prank(owner);
+        presale.withdrawPOL();
+        
+        vm.prank(owner);
+        presale.withdrawTokens(address(usdtToken));
+        
+        vm.prank(owner);
+        presale.withdrawTokens(address(usdcToken));
+        
+        // Verify all funds withdrawn
+        assertEq(address(presale).balance, 0);
+        assertEq(usdtToken.balanceOf(address(presale)), 0);
+        assertEq(usdcToken.balanceOf(address(presale)), 0);
+        
+        // Verify owner received funds
+        assertEq(owner.balance, initialPOLBalance);
+        assertEq(usdtToken.balanceOf(owner), initialUSDTBalance);
+        assertEq(usdcToken.balanceOf(owner), initialUSDCBalance);
+    }
+    
+    function test_POL_023_MaximumPriceIncrease() public {
+        vm.warp(block.timestamp + 8 days + 1 hours); // Start public sale
+        
+        uint256 initialRate = presale.getCurrentRate();
+        assertEq(initialRate, PUBLIC_RATE);
+        
+        // Jump forward multiple price increase intervals
+        uint256 intervals = 10;
+        vm.warp(block.timestamp + (intervals * PRICE_INTERVAL));
+        
+        uint256 finalRate = presale.getCurrentRate();
+        uint256 expectedRate = PUBLIC_RATE + (intervals * PRICE_INCREASE);
+        
+        assertEq(finalRate, expectedRate);
+        
+        // Purchase at highest rate
+        uint256 nonce = 30;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        dealPOL(alice, 10000 * 10**18);
+        vm.prank(alice);
+        presale.buyTokensWithPOL{value: 1000 * 10**18}(nonce, signature);
+        
+        (, uint256 publicPurchased,,) = presale.getBuyerInfo(alice);
+        uint256 expectedUSDAmount = (1000 * 10**18 * POL_USD_PRICE) / 10**26;
+        assertEq(publicPurchased, expectedUSDAmount);
+    }
+    
+    function test_POL_024_ContractStats() public {
+        // Make mixed purchases
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Presale purchases
+        uint256 nonce1 = 31;
+        bytes memory sig1 = generateSignature(alice, 1000 * 10**6, nonce1);
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6, nonce1, sig1);
+        
+        uint256 nonce2 = 32;
+        bytes memory sig2 = generateSignature(bob, 0, nonce2);
+        dealPOL(bob, 10000 * 10**18);
+        vm.prank(bob);
+        presale.buyTokensWithPOL{value: 2000 * 10**18}(nonce2, sig2);
+        
+        // Public sale
+        vm.warp(block.timestamp + 8 days);
+        
+        uint256 nonce3 = 33;
+        bytes memory sig3 = generateSignature(charlie, 500 * 10**6, nonce3);
+        vm.prank(charlie);
+        presale.buyTokensWithUSDC(500 * 10**6, nonce3, sig3);
+        
+        // Check totals
+        (
+            uint256 totalPresaleUSD,
+            uint256 totalPublicUSD,
+            uint256 totalUSDTRaised,
+            uint256 totalUSDCRaised,
+            uint256 totalPOLRaised
+        ) = presale.getSaleStats();
+        
+        uint256 expectedPOLUSD = (2000 * 10**18 * POL_USD_PRICE) / 10**26;
+        
+        assertEq(totalPresaleUSD, 1000 * 10**6 + expectedPOLUSD);
+        assertEq(totalPublicUSD, 500 * 10**6);
+        assertEq(totalUSDTRaised, 1000 * 10**6);
+        assertEq(totalUSDCRaised, 500 * 10**6);
+        assertEq(totalPOLRaised, 2000 * 10**18);
+    }
+    
+    function test_POL_025_SelfReferralPrevention() public {
+        vm.warp(block.timestamp + 1 hours);
+        
+        uint256 nonce = 34;
+        bytes memory signature = generateSignature(alice, 0, nonce);
+        
+        uint256 aliceBalanceBefore = alice.balance;
+        
+        dealPOL(alice, 10000 * 10**18);
+        vm.prank(alice);
+        presale.buyTokensWithPOLAndReferral{value: 1000 * 10**18}(alice, nonce, signature); // Self-referral
+        
+        uint256 aliceBalanceAfter = alice.balance;
+        
+        // Alice should not receive any referral bonus for self-referral
+        uint256 expectedCost = 1000 * 10**18;
+        assertEq(aliceBalanceBefore - aliceBalanceAfter, expectedCost);
+        
+        // Referral info should not be updated
+        (uint256 totalReferred, uint256 totalVolume) = presale.getReferralInfo(alice);
+        assertEq(totalReferred, 0);
+        assertEq(totalVolume, 0);
+    }
+}

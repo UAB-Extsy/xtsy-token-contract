@@ -1,0 +1,460 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../src/xtsySale.sol";
+import "../src/ExtsyToken.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+
+/**
+ * @title CrossChainDistributionTest
+ * @dev Test suite specifically for distributeTokensCrossChain functionality
+ */
+contract CrossChainDistributionTest is Test {
+    xtsySale public presale;
+    ExtsyToken public xtsyToken;
+    MockUSDT public usdtToken;
+    MockUSDC public usdcToken;
+    
+    // Test addresses and signers
+    uint256 ownerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    uint256 crossChainSignerPrivateKey = 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d;
+    address public owner = vm.addr(ownerPrivateKey);
+    address public backendSigner = address(0x123);
+    address public crossChainSigner = vm.addr(crossChainSignerPrivateKey);
+    address public recipient1 = address(0x1001);
+    address public recipient2 = address(0x1002);
+    address public recipient3 = address(0x1003);
+    
+    event CrossChainDistribution(
+        address indexed recipient,
+        uint256 amount,
+        uint256 nonce
+    );
+
+    function setUp() public {
+        vm.startPrank(owner);
+        
+        // Deploy tokens
+        usdtToken = new MockUSDT();
+        usdcToken = new MockUSDC();
+        
+        // Deploy XTSY token
+        xtsyToken = new ExtsyToken(
+            owner, owner, owner, owner, owner, owner, owner, owner, owner
+        );
+        
+        // Deploy presale contract with proper cross-chain signer
+        presale = new xtsySale(
+            address(xtsyToken),
+            address(usdtToken),
+            address(usdcToken),
+            owner,
+            backendSigner,
+            crossChainSigner
+        );
+        
+        // Configure sale timing
+        xtsySale.SaleConfig memory config = xtsySale.SaleConfig({
+            presaleStartTime: block.timestamp + 1 hours,
+            presaleEndTime: block.timestamp + 8 days,
+            publicSaleStartTime: block.timestamp + 8 days,
+            publicSaleEndTime: block.timestamp + 30 days,
+            presaleRate: 100000,
+            publicSaleStartRate: 350000,
+            priceIncreaseInterval: 518400,
+            priceIncreaseAmount: 17500
+        });
+        
+        presale.configureSale(config);
+        
+        // Transfer tokens to presale contract
+        xtsyToken.transfer(address(presale), 10_000_000 * 10**18);
+        
+        vm.stopPrank();
+    }
+    
+    // Helper function to generate cross-chain signature
+    function generateCrossChainSignature(address recipient, uint256 amount, uint256 nonce) internal view returns (bytes memory) {
+        bytes32 messageHash = keccak256(abi.encodePacked(recipient, amount, nonce, address(presale)));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(crossChainSignerPrivateKey, ethSignedMessageHash);
+        return abi.encodePacked(r, s, v);
+    }
+
+    // ============================================================================
+    // BASIC CROSS-CHAIN DISTRIBUTION TESTS
+    // ============================================================================
+    
+    function test_CrossChain_001_BasicDistribution() public {
+        uint256 amount = 100_000 * 10**18; // 100k tokens
+        uint256 nonce = 1;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        uint256 recipientBalanceBefore = xtsyToken.balanceOf(recipient1);
+        
+        vm.expectEmit(true, true, true, true);
+        emit CrossChainDistribution(recipient1, amount, nonce);
+        
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        uint256 recipientBalanceAfter = xtsyToken.balanceOf(recipient1);
+        assertEq(recipientBalanceAfter - recipientBalanceBefore, amount);
+    }
+    
+    function test_CrossChain_002_MultipleDistributions() public {
+        uint256 amount1 = 50_000 * 10**18;
+        uint256 amount2 = 75_000 * 10**18;
+        uint256 amount3 = 25_000 * 10**18;
+        
+        // First distribution
+        bytes memory sig1 = generateCrossChainSignature(recipient1, amount1, 1);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount1, 1, sig1);
+        
+        // Second distribution to different recipient
+        bytes memory sig2 = generateCrossChainSignature(recipient2, amount2, 2);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient2, amount2, 2, sig2);
+        
+        // Third distribution to first recipient again
+        bytes memory sig3 = generateCrossChainSignature(recipient1, amount3, 3);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount3, 3, sig3);
+        
+        // Verify balances
+        assertEq(xtsyToken.balanceOf(recipient1), amount1 + amount3);
+        assertEq(xtsyToken.balanceOf(recipient2), amount2);
+        assertEq(xtsyToken.balanceOf(recipient3), 0);
+    }
+    
+    function test_CrossChain_003_LargeDistribution() public {
+        uint256 amount = 1_000_000 * 10**18; // 1M tokens
+        uint256 nonce = 10;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        assertEq(xtsyToken.balanceOf(recipient1), amount);
+    }
+
+    // ============================================================================
+    // ACCESS CONTROL TESTS
+    // ============================================================================
+    
+    function test_CrossChain_004_OnlyOwnerCanDistribute() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 20;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        // Should fail for non-owner
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", recipient1));
+        vm.prank(recipient1);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        // Should work for owner
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        assertEq(xtsyToken.balanceOf(recipient1), amount);
+    }
+
+    // ============================================================================
+    // SIGNATURE VALIDATION TESTS
+    // ============================================================================
+    
+    function test_CrossChain_005_InvalidSignature() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 30;
+        
+        bytes memory invalidSignature = "invalid_signature_data";
+        
+        vm.expectRevert(xtsySale.InvalidSignature.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, invalidSignature);
+    }
+    
+    function test_CrossChain_006_WrongSignerSignature() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 31;
+        
+        // Generate signature with wrong private key (owner instead of crossChainSigner)
+        bytes32 messageHash = keccak256(abi.encodePacked(recipient1, amount, nonce, address(presale)));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, ethSignedMessageHash); // Wrong key
+        bytes memory wrongSignature = abi.encodePacked(r, s, v);
+        
+        vm.expectRevert(xtsySale.InvalidSignature.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, wrongSignature);
+    }
+    
+    function test_CrossChain_007_SignatureForWrongRecipient() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 32;
+        
+        // Generate signature for recipient2 but use for recipient1
+        bytes memory signature = generateCrossChainSignature(recipient2, amount, nonce);
+        
+        vm.expectRevert(xtsySale.InvalidSignature.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+    }
+    
+    function test_CrossChain_008_SignatureForWrongAmount() public {
+        uint256 correctAmount = 100_000 * 10**18;
+        uint256 wrongAmount = 200_000 * 10**18;
+        uint256 nonce = 33;
+        
+        // Generate signature for correct amount but use wrong amount
+        bytes memory signature = generateCrossChainSignature(recipient1, correctAmount, nonce);
+        
+        vm.expectRevert(xtsySale.InvalidSignature.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, wrongAmount, nonce, signature);
+    }
+
+    // ============================================================================
+    // NONCE REPLAY PROTECTION TESTS
+    // ============================================================================
+    
+    function test_CrossChain_009_NonceReplayProtection() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 40;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        // First distribution should work
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        // Second distribution with same nonce should fail
+        vm.expectRevert(xtsySale.NonceAlreadyUsed.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+    }
+    
+    function test_CrossChain_010_DifferentNoncesWork() public {
+        uint256 amount = 50_000 * 10**18;
+        
+        for (uint256 i = 50; i < 55; i++) {
+            bytes memory signature = generateCrossChainSignature(recipient1, amount, i);
+            
+            vm.prank(owner);
+            presale.distributeTokensCrossChain(recipient1, amount, i, signature);
+        }
+        
+        // Should have received 5 * 50k = 250k tokens
+        assertEq(xtsyToken.balanceOf(recipient1), 250_000 * 10**18);
+    }
+
+    // ============================================================================
+    // ERROR CONDITION TESTS
+    // ============================================================================
+    
+    function test_CrossChain_011_ZeroAmount() public {
+        uint256 nonce = 60;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, 0, nonce);
+        
+        vm.expectRevert(xtsySale.ZeroAmount.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, 0, nonce, signature);
+    }
+    
+    function test_CrossChain_012_ZeroAddress() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 61;
+        
+        bytes memory signature = generateCrossChainSignature(address(0), amount, nonce);
+        
+        vm.expectRevert(xtsySale.ZeroAddress.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(address(0), amount, nonce, signature);
+    }
+    
+    function test_CrossChain_013_InsufficientContractBalance() public {
+        // Withdraw most tokens from contract first
+        uint256 contractBalance = xtsyToken.balanceOf(address(presale));
+        vm.prank(owner);
+        presale.withdrawTokens(address(xtsyToken));
+        
+        // Try to distribute more than available
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 62;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        vm.expectRevert(); // Should revert due to insufficient balance
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+    }
+
+    // ============================================================================
+    // EDGE CASE AND STRESS TESTS
+    // ============================================================================
+    
+    function test_CrossChain_014_MaxUint256Amount() public {
+        // First ensure contract has enough tokens
+        vm.prank(owner);
+        xtsyToken.transfer(address(presale), type(uint256).max / 2);
+        
+        uint256 amount = type(uint256).max / 2;
+        uint256 nonce = 70;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        
+        assertEq(xtsyToken.balanceOf(recipient1), amount);
+    }
+    
+    function test_CrossChain_015_HighNonceValues() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 highNonce = type(uint256).max - 1;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, highNonce);
+        
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, highNonce, signature);
+        
+        assertEq(xtsyToken.balanceOf(recipient1), amount);
+    }
+    
+    function test_CrossChain_016_MultipleRecipientsSimultaneous() public {
+        uint256 amount = 100_000 * 10**18;
+        address[10] memory recipients;
+        
+        // Setup recipients
+        for (uint i = 0; i < 10; i++) {
+            recipients[i] = address(uint160(0x2000 + i));
+        }
+        
+        // Distribute to all recipients
+        for (uint i = 0; i < 10; i++) {
+            uint256 nonce = 80 + i;
+            bytes memory signature = generateCrossChainSignature(recipients[i], amount, nonce);
+            
+            vm.prank(owner);
+            presale.distributeTokensCrossChain(recipients[i], amount, nonce, signature);
+        }
+        
+        // Verify all received tokens
+        for (uint i = 0; i < 10; i++) {
+            assertEq(xtsyToken.balanceOf(recipients[i]), amount);
+        }
+    }
+
+    // ============================================================================
+    // INTEGRATION TESTS
+    // ============================================================================
+    
+    function test_CrossChain_017_DistributeAfterSaleActivity() public {
+        // Start presale and make some purchases
+        vm.warp(block.timestamp + 1 hours);
+        
+        // Mock a presale purchase
+        uint256 purchaseAmount = 1000 * 10**6;
+        uint256 purchaseNonce = 100;
+        bytes32 purchaseHash = keccak256(abi.encodePacked(recipient1, purchaseAmount, purchaseNonce, address(presale)));
+        bytes32 purchaseSignedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", purchaseHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, purchaseSignedHash); // Using owner key for backend sig
+        bytes memory purchaseSignature = abi.encodePacked(r, s, v);
+        
+        // Give recipient USDT and approve
+        usdtToken.mint(recipient1, 10000 * 10**6);
+        vm.prank(recipient1);
+        usdtToken.approve(address(presale), type(uint256).max);
+        
+        // Make purchase
+        vm.prank(recipient1);
+        presale.buyTokensWithUSDT(purchaseAmount, purchaseNonce, purchaseSignature);
+        
+        uint256 balanceAfterPurchase = xtsyToken.balanceOf(recipient1);
+        assertTrue(balanceAfterPurchase > 0);
+        
+        // Now do cross-chain distribution
+        uint256 crossChainAmount = 50_000 * 10**18;
+        uint256 crossChainNonce = 101;
+        bytes memory crossChainSig = generateCrossChainSignature(recipient1, crossChainAmount, crossChainNonce);
+        
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, crossChainAmount, crossChainNonce, crossChainSig);
+        
+        uint256 finalBalance = xtsyToken.balanceOf(recipient1);
+        assertEq(finalBalance, balanceAfterPurchase + crossChainAmount);
+    }
+    
+    function test_CrossChain_018_ContractStateAfterDistributions() public {
+        uint256 initialContractBalance = xtsyToken.balanceOf(address(presale));
+        uint256 totalDistributed = 0;
+        
+        // Make several distributions
+        uint256[] memory amounts = new uint256[](5);
+        amounts[0] = 100_000 * 10**18;
+        amounts[1] = 250_000 * 10**18;  
+        amounts[2] = 75_000 * 10**18;
+        amounts[3] = 500_000 * 10**18;
+        amounts[4] = 125_000 * 10**18;
+        
+        for (uint i = 0; i < amounts.length; i++) {
+            address recipient = address(uint160(0x3000 + i));
+            uint256 nonce = 200 + i;
+            bytes memory signature = generateCrossChainSignature(recipient, amounts[i], nonce);
+            
+            vm.prank(owner);
+            presale.distributeTokensCrossChain(recipient, amounts[i], nonce, signature);
+            
+            totalDistributed += amounts[i];
+        }
+        
+        // Verify contract balance decreased correctly
+        uint256 finalContractBalance = xtsyToken.balanceOf(address(presale));
+        assertEq(finalContractBalance, initialContractBalance - totalDistributed);
+        
+        // Verify total distributed equals sum of individual distributions
+        uint256 sumOfBalances = 0;
+        for (uint i = 0; i < amounts.length; i++) {
+            address recipient = address(uint160(0x3000 + i));
+            sumOfBalances += xtsyToken.balanceOf(recipient);
+        }
+        assertEq(sumOfBalances, totalDistributed);
+    }
+    
+    function test_CrossChain_019_GasOptimizationCheck() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 300;
+        
+        bytes memory signature = generateCrossChainSignature(recipient1, amount, nonce);
+        
+        uint256 gasBefore = gasleft();
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, signature);
+        uint256 gasAfter = gasleft();
+        
+        uint256 gasUsed = gasBefore - gasAfter;
+        
+        // Verify gas usage is reasonable (should be well under 100k gas)
+        assertTrue(gasUsed < 100_000, "Gas usage too high for cross-chain distribution");
+        
+        assertEq(xtsyToken.balanceOf(recipient1), amount);
+    }
+    
+    function test_CrossChain_020_EmptySignature() public {
+        uint256 amount = 100_000 * 10**18;
+        uint256 nonce = 400;
+        
+        bytes memory emptySignature = "";
+        
+        vm.expectRevert(xtsySale.InvalidSignature.selector);
+        vm.prank(owner);
+        presale.distributeTokensCrossChain(recipient1, amount, nonce, emptySignature);
+    }
+}

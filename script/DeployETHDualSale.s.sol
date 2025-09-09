@@ -50,7 +50,8 @@ contract DeployETHDualSale is Script {
             usdtTokenAddress,
             usdcTokenAddress,
             deployer,
-            backendSigner
+            backendSigner,
+            backendSigner  // use same signer for crosschain for now
         );
         
         // Set ETH price feed separately
@@ -91,7 +92,8 @@ contract DeployETHDualSale is Script {
             usdtTokenAddress,
             usdcTokenAddress,
             deployer,
-            backendSigner
+            backendSigner,
+            backendSigner  // use same signer for crosschain for now
         );
         
         // Set ETH price feed separately

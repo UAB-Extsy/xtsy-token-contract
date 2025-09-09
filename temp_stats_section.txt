@@ -1,0 +1,9 @@
+        // Check contract stats
+        (
+            uint256 totalPresaleSold,
+            uint256 totalPublicSold,
+            uint256 totalUSDTRaised,
+            uint256 totalUSDCRaised,
+            uint256 totalETHRaised,
+            xtsySale.SalePhase currentPhase
+        ) = presale.getContractStats();

@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/xtsySale.sol";
 import "../src/ExtsyToken.sol";
-import "../src/MockUSDC.sol";
-import "../test/mocks/MockUSDT.sol";
+import "../src/mocks/MockUSDC.sol";
+import "../src/mocks/MockUSDT.sol";
 
 contract DeployCleanPresale is Script {
     ExtsyToken public token;
@@ -51,7 +51,8 @@ contract DeployCleanPresale is Script {
             usdtTokenAddress,
             usdcTokenAddress,
             deployer,
-            deployer  // backend signer - use deployer for now
+            deployer,  // backend signer - use deployer for now
+            deployer   // crosschain backend signer - use deployer for now
         );
         
         console.log("   Clean Presale deployed at:", address(presale));

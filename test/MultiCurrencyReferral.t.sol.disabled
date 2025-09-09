@@ -1,0 +1,243 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../src/xtsySale.sol";
+import "../src/ExtsyToken.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+
+/**
+ * @title MultiCurrencyReferralTest
+ * @dev Test suite for multi-currency (USDT/USDC) and direct referral system
+ */
+contract MultiCurrencyReferralTest is Test {
+    xtsySale public presale;
+    ExtsyToken public xtsyToken;
+    MockUSDT public usdtToken;
+    MockUSDC public usdcToken;
+    
+    address public owner = address(1);
+    address public alice = address(2);  // Buyer
+    address public bob = address(3);    // Referrer
+    address public charlie = address(4); // Another buyer
+    
+    uint256 public constant PRESALE_RATE = 25000; // $0.025 per token
+    uint256 public constant PUBLIC_RATE = 100000; // $0.10 per token
+    
+    function setUp() public {
+        vm.startPrank(owner);
+        
+        // Deploy mock stablecoins
+        usdtToken = new MockUSDT();
+        usdcToken = new MockUSDC();
+        
+        // First deploy a placeholder token to get address for presale
+        // Deploy token with allocations - for testing, owner gets most allocations
+        xtsyToken = new ExtsyToken(
+            owner,
+            owner,    // presale
+            owner,    // public sale
+            owner,    // liquidity
+            owner,    // team advisors  
+            owner,    // ecosystem
+            owner,    // treasury
+            owner,    // staking
+            owner     // marketing
+        );
+        
+        // Now deploy presale with correct token address
+        presale = new xtsySale(
+            address(xtsyToken),
+            address(usdtToken),
+            address(usdcToken),
+            owner
+        );
+        
+        // Configure sale (no min/max limits anymore!)
+        xtsySale.SaleConfig memory config = xtsySale.SaleConfig({
+            presaleStartTime: block.timestamp + 1,
+            presaleEndTime: block.timestamp + 50 minutes,
+            publicSaleStartTime: block.timestamp + 60 minutes,
+            publicSaleEndTime: block.timestamp + 130 minutes,
+            presaleRate: PRESALE_RATE,
+            publicSaleStartRate: PUBLIC_RATE,
+            presaleCap: 100_000_000 * 10**18,
+            publicSaleCap: 50_000_000 * 10**18,
+            whitelistDeadline: block.timestamp - 1,
+            priceIncreaseInterval: 30 minutes,
+            priceIncreaseAmount: 10000
+        });
+        presale.configureSale(config);
+        
+        // Transfer tokens to presale (100M + 25M referral = 125M total)
+        xtsyToken.transfer(address(presale), 125_000_000 * 10**18);
+        
+        // Whitelist users
+        presale.addToWhitelist(alice);
+        presale.addToWhitelist(bob);
+        presale.addToWhitelist(charlie);
+        
+        // Fund users with both USDT and USDC
+        usdtToken.mint(alice, 10_000 * 10**6);
+        usdtToken.mint(charlie, 10_000 * 10**6);
+        usdcToken.mint(alice, 10_000 * 10**6);
+        usdcToken.mint(charlie, 10_000 * 10**6);
+        
+        vm.stopPrank();
+        
+        // Approve tokens
+        vm.prank(alice);
+        usdtToken.approve(address(presale), type(uint256).max);
+        vm.prank(alice);
+        usdcToken.approve(address(presale), type(uint256).max);
+        
+        vm.prank(charlie);
+        usdtToken.approve(address(presale), type(uint256).max);
+        vm.prank(charlie);
+        usdcToken.approve(address(presale), type(uint256).max);
+    }
+    
+    /**
+     * @dev Test buying with USDT
+     */
+    function testBuyWithUSDT() public {
+        vm.warp(block.timestamp + 1); // Start presale
+        
+        uint256 purchaseAmount = 1000 * 10**6; // 1000 USDT
+        uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+        
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(purchaseAmount);
+        
+        // Check purchase info
+        (uint256 presalePurchased,,,,,,) = presale.getBuyerInfo(alice);
+        assertEq(presalePurchased, purchaseAmount);
+    }
+    
+    /**
+     * @dev Test buying with USDC
+     */
+    function testBuyWithUSDC() public {
+        vm.warp(block.timestamp + 1); // Start presale
+        
+        uint256 purchaseAmount = 1000 * 10**6; // 1000 USDC
+        uint256 expectedTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+        
+        vm.prank(alice);
+        presale.buyTokensWithUSDC(purchaseAmount);
+        
+        // Check purchase info
+        (uint256 presalePurchased,,,,,,) = presale.getBuyerInfo(alice);
+        assertEq(presalePurchased, purchaseAmount);
+    }
+    
+    /**
+     * @dev Test buying with USDT and referral
+     */
+    function testBuyWithUSDTAndReferral() public {
+        vm.warp(block.timestamp + 1); // Start presale
+        
+        uint256 purchaseAmount = 1000 * 10**6; // 1000 USDT
+        uint256 baseTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 40,000 XTSY
+        uint256 referrerBonus = (baseTokens * 50) / 1000; // 5% = 2,000 XTSY
+        
+        // Alice buys with Bob as referrer
+        vm.prank(alice);
+        presale.buyTokensWithUSDTAndReferral(purchaseAmount, bob);
+        
+        // Check Alice's purchase
+        (uint256 presalePurchased,, uint256 tokensAllocated,,,, address referrer) = presale.getBuyerInfo(alice);
+        assertEq(presalePurchased, purchaseAmount);
+        assertEq(tokensAllocated, baseTokens); // Alice gets base tokens only
+        assertEq(referrer, bob);
+        
+        // Check Bob's referral bonus
+        (,,, uint256 bobReferralBonus,,,) = presale.getBuyerInfo(bob);
+        assertEq(bobReferralBonus, referrerBonus);
+        
+        // Check referral stats
+        (uint256 totalReferred, uint256 totalVolume, uint256 totalEarned) = presale.getReferralStats(bob);
+        assertEq(totalReferred, 1);
+        assertEq(totalVolume, purchaseAmount);
+        assertEq(totalEarned, referrerBonus);
+    }
+    
+    /**
+     * @dev Test buying with USDC and referral
+     */
+    function testBuyWithUSDCAndReferral() public {
+        vm.warp(block.timestamp + 1); // Start presale
+        
+        uint256 purchaseAmount = 2000 * 10**6; // 2000 USDC
+        uint256 baseTokens = (purchaseAmount * 10**18) / PRESALE_RATE; // 80,000 XTSY
+        uint256 referrerBonus = (baseTokens * 50) / 1000; // 5% = 4,000 XTSY
+        
+        // Charlie buys with Bob as referrer
+        vm.prank(charlie);
+        presale.buyTokensWithUSDCAndReferral(purchaseAmount, bob);
+        
+        // Check Charlie's purchase
+        (uint256 presalePurchased,, uint256 tokensAllocated,,,, address referrer) = presale.getBuyerInfo(charlie);
+        assertEq(presalePurchased, purchaseAmount);
+        assertEq(tokensAllocated, baseTokens);
+        assertEq(referrer, bob);
+        
+        // Check Bob's referral bonus
+        (,,, uint256 bobReferralBonus,,,) = presale.getBuyerInfo(bob);
+        assertEq(bobReferralBonus, referrerBonus);
+    }
+    
+    /**
+     * @dev Test that referrer cannot refer themselves
+     */
+    function testCannotReferSelf() public {
+        vm.warp(block.timestamp + 1);
+        
+        uint256 purchaseAmount = 1000 * 10**6;
+        
+        // Alice tries to refer herself
+        vm.prank(alice);
+        presale.buyTokensWithUSDTAndReferral(purchaseAmount, alice);
+        
+        // Check that no referral was recorded
+        (,,,,,, address referrer) = presale.getBuyerInfo(alice);
+        assertEq(referrer, address(0));
+        
+        // Check no referral stats for Alice
+        (uint256 totalReferred,,) = presale.getReferralStats(alice);
+        assertEq(totalReferred, 0);
+    }
+    
+    /**
+     * @dev Test withdrawal of both USDT and USDC
+     */
+    function testWithdrawMultipleCurrencies() public {
+        vm.warp(block.timestamp + 1);
+        
+        // Alice buys with USDT
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1000 * 10**6);
+        
+        // Charlie buys with USDC
+        vm.prank(charlie);
+        presale.buyTokensWithUSDC(2000 * 10**6);
+        
+        // Check contract balances
+        assertEq(usdtToken.balanceOf(address(presale)), 1000 * 10**6);
+        assertEq(usdcToken.balanceOf(address(presale)), 2000 * 10**6);
+        
+        // Owner withdraws funds
+        uint256 ownerUSDTBefore = usdtToken.balanceOf(owner);
+        uint256 ownerUSDCBefore = usdcToken.balanceOf(owner);
+        
+        vm.prank(owner);
+        presale.withdrawFunds();
+        
+        // Check funds were withdrawn
+        assertEq(usdtToken.balanceOf(owner), ownerUSDTBefore + 1000 * 10**6);
+        assertEq(usdcToken.balanceOf(owner), ownerUSDCBefore + 2000 * 10**6);
+        assertEq(usdtToken.balanceOf(address(presale)), 0);
+        assertEq(usdcToken.balanceOf(address(presale)), 0);
+    }
+}

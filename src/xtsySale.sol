@@ -14,12 +14,12 @@ import "./interfaces/AggregatorV3Interface.sol";
  * @dev Clean, minimal presale contract with dynamic vesting for XTSY token
  * @notice Presale Price: $0.10 | Public Price: $0.35+ (5% increases every 6 days)
  * @notice Vesting Categories:
- * - Presale (2%): 100% TGE
- * - Public Sale (6%): 100% TGE  
- * - Liquidity & Market Making (7%): 100% TGE
- * - Team & Advisors (15%): 12m cliff, 24m vest
- * - Ecosystem Growth (20%): 36m vest
- * - Treasury (25%): 6m lock, 36m vest
+ * - Presale (4%): Immediate transfer on purchase
+ * - Public Sale (4%): Immediate transfer on purchase  
+ * - Liquidity & Market Making (7%): Immediate transfer on purchase
+ * - Team & Advisors (15%): 0% TGE, 12m cliff, 24m vest
+ * - Ecosystem Growth (20%): 0% TGE, 36m vest
+ * - Treasury (25%): 0% TGE, 6m lock, 36m vest
  * - Marketing & Partnerships (10%): 20% TGE, 6m vest
  */
 contract xtsySale is ReentrancyGuard, Ownable, Pausable {
@@ -36,11 +36,13 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     // Backend signer for signature verification
     address public backendSigner;
     
+    // Cross-chain backend signer for cross-chain operations
+    address public crossChainBackendSigner;
+    
     // Mapping to prevent signature replay attacks
     mapping(bytes32 => bool) public usedSignatures;
     
     enum SalePhase { NotStarted, PresaleWhitelist, PublicSale, Ended }
-    SalePhase public currentPhase;
     
     // Vesting categories with their caps
     enum VestingCategory {
@@ -93,7 +95,6 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 tokensAllocated;        // Total tokens allocated
         uint256 tokensClaimed;          // Tokens already claimed
         address referrer;               // Who referred this user
-        bool hasClaimedTGE;            // Whether TGE tokens claimed
     }
     
     mapping(address => UserPurchase) public userPurchases;
@@ -137,14 +138,14 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     event TokensPurchasedWithReferral(address indexed buyer, address indexed referrer, uint256 usdAmount, uint256 tokens, uint256 referrerBonus);
     event TokensAllocated(address indexed recipient, VestingCategory category, uint256 amount);
     event TokensClaimed(address indexed recipient, VestingCategory category, uint256 amount);
-    event PhaseUpdated(SalePhase newPhase);
     event BackendSignerUpdated(address indexed newSigner);
+    event CrossChainBackendSignerUpdated(address indexed newSigner);
     event SignatureUsed(bytes32 indexed signatureHash);
-    event TGESet(uint256 timestamp);
     event FundsWithdrawn(uint256 usdtAmount, uint256 usdcAmount);
     event CrossChainTokensDistributed(address indexed buyer, uint256 tokens, uint256 chainId, SalePhase phase);
     event USDTTokenUpdated(address indexed newToken);
     event USDCTokenUpdated(address indexed newToken);
+    event TGESet(uint256 timestamp);
     
     // =============================================================================
     // ERRORS
@@ -153,16 +154,17 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     error InvalidPhase();
     error InvalidSignature();
     error SignatureAlreadyUsed();
+    error SignatureExpired();
     error SaleNotActive();
     error InsufficientTokensAvailable();
     error NoTokensToClaim();
     error InvalidConfiguration();
     error ZeroAddress();
     error ZeroAmount();
-    error TGENotSet();
     error CliffNotReached();
     error CategoryCapExceeded();
     error AlreadyAllocated();
+    error TGENotSet();
     
     // =============================================================================
     // CONSTRUCTOR
@@ -173,9 +175,10 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         address _usdtToken,
         address _usdcToken,
         address _owner,
-        address _backendSigner
+        address _backendSigner,
+        address _crossChainBackendSigner
     ) Ownable(_owner) {
-        if (_usdtToken == address(0) || _usdcToken == address(0) || _owner == address(0) || _backendSigner == address(0)) {
+        if (_usdtToken == address(0) || _usdcToken == address(0) || _owner == address(0) || _backendSigner == address(0) || _crossChainBackendSigner == address(0)) {
             revert ZeroAddress();
         }
         
@@ -186,7 +189,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         usdtToken = IERC20(_usdtToken);
         usdcToken = IERC20(_usdcToken);
         backendSigner = _backendSigner;
-        currentPhase = SalePhase.NotStarted;
+        crossChainBackendSigner = _crossChainBackendSigner;
         
         _initializeCategories();
         _initializeVestingConfigs();
@@ -208,25 +211,25 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     }
     
     function _initializeVestingConfigs() private {
-        // Presale: 100% TGE
+        // Presale: Immediate transfer (no TGE, no vesting)
         vestingConfigs[VestingCategory.Presale] = VestingConfig(1000, 0, 0);
         
-        // Public Sale: 100% TGE
+        // Public Sale: Immediate transfer (no TGE, no vesting)
         vestingConfigs[VestingCategory.PublicSale] = VestingConfig(1000, 0, 0);
         
-        // Liquidity: 100% TGE
+        // Liquidity: Immediate transfer (no TGE, no vesting)
         vestingConfigs[VestingCategory.Liquidity] = VestingConfig(1000, 0, 0);
         
-        // Team & Advisors: 12m cliff, 24m vest
+        // Team & Advisors: 0% TGE, 12m cliff, 24m vest
         vestingConfigs[VestingCategory.TeamAdvisors] = VestingConfig(0, 12, 24);
         
-        // Ecosystem: 36m vest (no cliff)
+        // Ecosystem: 0% TGE, 36m vest (no cliff)
         vestingConfigs[VestingCategory.Ecosystem] = VestingConfig(0, 0, 36);
         
-        // Treasury: 6m lock, 36m vest
+        // Treasury: 0% TGE, 6m lock, 36m vest
         vestingConfigs[VestingCategory.Treasury] = VestingConfig(0, 6, 36);
         
-        // Marketing: 20% TGE, 6m vest
+        // Marketing: 20% TGE, 6m vest (no cliff)
         vestingConfigs[VestingCategory.Marketing] = VestingConfig(200, 0, 6);
     }
     
@@ -248,10 +251,6 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         vestingConfigs[category] = config;
     }
     
-    function setTGETimestamp(uint256 _tgeTimestamp) external onlyOwner {
-        tgeTimestamp = _tgeTimestamp;
-        emit TGESet(_tgeTimestamp);
-    }
     
     function setReferralConfig(uint256 _bonusPercent, bool _enabled) external onlyOwner {
         referralBonusPercent = _bonusPercent;
@@ -274,6 +273,12 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         emit BackendSignerUpdated(_backendSigner);
     }
     
+    function setCrossChainBackendSigner(address _crossChainBackendSigner) external onlyOwner {
+        if (_crossChainBackendSigner == address(0)) revert ZeroAddress();
+        crossChainBackendSigner = _crossChainBackendSigner;
+        emit CrossChainBackendSignerUpdated(_crossChainBackendSigner);
+    }
+    
     function setUSDTToken(address _usdtToken) external onlyOwner {
         if (_usdtToken == address(0)) revert ZeroAddress();
         usdtToken = IERC20(_usdtToken);
@@ -284,6 +289,11 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         if (_usdcToken == address(0)) revert ZeroAddress();
         usdcToken = IERC20(_usdcToken);
         emit USDCTokenUpdated(_usdcToken);
+    }
+    
+    function setTGETimestamp(uint256 _tgeTimestamp) external onlyOwner {
+        tgeTimestamp = _tgeTimestamp;
+        emit TGESet(_tgeTimestamp);
     }
     
     // =============================================================================
@@ -321,17 +331,59 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         emit SignatureUsed(signatureHash);
     }
     
+    function _verifyCrossChainSignature(
+        address buyer,
+        uint256 usdAmount,
+        uint256 chainId,
+        bool isPresale,
+        address referrer,
+        uint256 nonce,
+        uint256 expiry,
+        bytes memory signature
+    ) internal {
+        // Check if signature has expired
+        if (block.timestamp > expiry) {
+            revert SignatureExpired();
+        }
+        
+        // Create cross-chain specific message hash with expiry
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            buyer,
+            usdAmount,
+            chainId,
+            isPresale,
+            referrer,
+            nonce,
+            expiry,
+            address(this)
+        ));
+        bytes32 signatureHash = keccak256(signature);
+        
+        // Check if signature was already used
+        if (usedSignatures[signatureHash]) {
+            revert SignatureAlreadyUsed();
+        }
+        
+        // Convert to Ethereum signed message hash
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        
+        // Recover signer address
+        address recoveredSigner = ECDSA.recover(ethSignedMessageHash, signature);
+        
+        // Verify signature with cross-chain backend signer
+        if (recoveredSigner != crossChainBackendSigner) {
+            revert InvalidSignature();
+        }
+        
+        // Mark signature as used
+        usedSignatures[signatureHash] = true;
+        emit SignatureUsed(signatureHash);
+    }
+    
     // =============================================================================
     // PHASE MANAGEMENT
     // =============================================================================
     
-    function updatePhase() public {
-        SalePhase newPhase = getCurrentPhase();
-        if (newPhase != currentPhase) {
-            currentPhase = newPhase;
-            emit PhaseUpdated(newPhase);
-        }
-    }
     
     function getCurrentPhase() public view returns (SalePhase) {
         uint256 currentTime = block.timestamp;
@@ -352,6 +404,27 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     // =============================================================================
     // PURCHASE FUNCTIONS
     // =============================================================================
+
+    // --- Safe transfer helpers for USDT/USDC compatibility ---
+    function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        (bool callSuccess, bytes memory data) = token.call(
+            abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, amount)
+        );
+        require(callSuccess, "Token transferFrom call failed");
+        if (data.length > 0) {
+            require(abi.decode(data, (bool)), "Token transferFrom returned false");
+        }
+    }
+    
+    function _safeTransfer(address token, address to, uint256 amount) internal {
+        (bool callSuccess, bytes memory data) = token.call(
+            abi.encodeWithSignature("transfer(address,uint256)", to, amount)
+        );
+        require(callSuccess, "Token transfer call failed");
+        if (data.length > 0) {
+            require(abi.decode(data, (bool)), "Token transfer returned false");
+        }
+    }
     
     function buyTokensWithUSDT(
         uint256 usdtAmount,
@@ -409,9 +482,9 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 nonce,
         bytes calldata signature
     ) private {
-        updatePhase();
+        SalePhase phase = getCurrentPhase();
         
-        if (currentPhase == SalePhase.NotStarted || currentPhase == SalePhase.Ended) {
+        if (phase == SalePhase.NotStarted || phase == SalePhase.Ended) {
             revert SaleNotActive();
         }
         
@@ -419,7 +492,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         if (address(saleToken) == address(0)) revert ZeroAddress();
         
         // Verify signature for presale access
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             _verifySignature(msg.sender, usdAmount, nonce, signature);
         }
         
@@ -430,7 +503,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 tokensToAllocate = (usdAmount * 10**18) / currentRate;
         
         // Check caps
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             if (totalPresaleSold + tokensToAllocate > categoryCaps[VestingCategory.Presale]) {
                 revert InsufficientTokensAvailable();
             }
@@ -448,18 +521,18 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
             referrerPaymentBonus = (usdAmount * referralBonusPercent) / 1000; // 5% of payment amount
         }
         
-        // Transfer payment
+        // Transfer payment using safe transferFrom
         IERC20 paymentToken = isUsdt ? usdtToken : usdcToken;
-        paymentToken.transferFrom(msg.sender, address(this), usdAmount);
+        _safeTransferFrom(address(paymentToken), msg.sender, address(this), usdAmount);
         
         // Transfer referral bonus to referrer if applicable
         if (referrerPaymentBonus > 0) {
-            paymentToken.transfer(referrer, referrerPaymentBonus);
+            _safeTransfer(address(paymentToken), referrer, referrerPaymentBonus);
         }
         
         // Update user purchase data
         UserPurchase storage purchase = userPurchases[msg.sender];
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             purchase.presalePurchased += usdAmount;
         } else {
             purchase.publicSalePurchased += usdAmount;
@@ -477,11 +550,11 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
             
             emit TokensPurchasedWithReferral(msg.sender, referrer, usdAmount, tokensToAllocate, referrerPaymentBonus);
         } else {
-            emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, currentPhase);
+            emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, phase);
         }
         
         // Transfer tokens immediately to buyer (only their purchased amount)
-        saleToken.transfer(msg.sender, tokensToAllocate);
+        _safeTransfer(address(saleToken), msg.sender, tokensToAllocate);
         
         // Update totals
         if (isUsdt) {
@@ -496,9 +569,9 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 nonce,
         bytes calldata signature
     ) private {
-        updatePhase();
+        SalePhase phase = getCurrentPhase();
         
-        if (currentPhase == SalePhase.NotStarted || currentPhase == SalePhase.Ended) {
+        if (phase == SalePhase.NotStarted || phase == SalePhase.Ended) {
             revert SaleNotActive();
         }
         
@@ -516,7 +589,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 usdAmount = (msg.value * ethPriceUsd) / (10**20);
         
         // Verify signature for presale access  
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             _verifySignature(msg.sender, msg.value, nonce, signature);
         }
         
@@ -525,7 +598,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 tokensToAllocate = (usdAmount * 10**18) / currentRate;
         
         // Check caps
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             if (totalPresaleSold + tokensToAllocate > categoryCaps[VestingCategory.Presale]) {
                 revert InsufficientTokensAvailable();
             }
@@ -551,7 +624,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         
         // Update user purchase data
         UserPurchase storage purchase = userPurchases[msg.sender];
-        if (currentPhase == SalePhase.PresaleWhitelist) {
+        if (phase == SalePhase.PresaleWhitelist) {
             purchase.presalePurchased += usdAmount;
         } else {
             purchase.publicSalePurchased += usdAmount;
@@ -569,11 +642,11 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
             
             emit TokensPurchasedWithReferral(msg.sender, referrer, usdAmount, tokensToAllocate, referrerEthBonus);
         } else {
-            emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, currentPhase);
+            emit TokensPurchased(msg.sender, usdAmount, tokensToAllocate, phase);
         }
         
         // Transfer tokens immediately to buyer (only their purchased amount)
-        saleToken.transfer(msg.sender, tokensToAllocate);
+        _safeTransfer(address(saleToken), msg.sender, tokensToAllocate);
         
         // Update ETH total
         totalEthRaised += msg.value;
@@ -699,24 +772,29 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     // CLAIMING FUNCTIONS
     // =============================================================================
     
-    function claimTGETokens() external nonReentrant {
+    function claimTGETokens(VestingCategory category) external nonReentrant {
         if (address(saleToken) == address(0)) revert ZeroAddress();
         if (tgeTimestamp == 0 || block.timestamp < tgeTimestamp) {
             revert TGENotSet();
         }
         
-        UserPurchase storage purchase = userPurchases[msg.sender];
-        if (purchase.hasClaimedTGE) revert NoTokensToClaim();
+        UserAllocation storage allocation = userAllocations[msg.sender][category];
+        if (allocation.totalAllocated == 0) revert NoTokensToClaim();
         
-        uint256 totalClaimable = purchase.tokensAllocated;
+        VestingConfig storage config = vestingConfigs[category];
+        if (config.tgePercent == 0) revert NoTokensToClaim();
         
-        if (totalClaimable == 0) revert NoTokensToClaim();
+        uint256 tgeAmount = (allocation.totalAllocated * config.tgePercent) / 1000;
+        if (tgeAmount == 0) revert NoTokensToClaim();
         
-        purchase.hasClaimedTGE = true;
-        purchase.tokensClaimed = totalClaimable;
+        // Check if TGE tokens already claimed (using claimedAmount as TGE tracker)
+        if (allocation.claimedAmount >= tgeAmount) revert NoTokensToClaim();
         
-        saleToken.transfer(msg.sender, totalClaimable);
-        emit TokensClaimed(msg.sender, VestingCategory.Presale, totalClaimable);
+        uint256 claimableTGE = tgeAmount - allocation.claimedAmount;
+        allocation.claimedAmount += claimableTGE;
+        
+        _safeTransfer(address(saleToken), msg.sender, claimableTGE);
+        emit TokensClaimed(msg.sender, category, claimableTGE);
     }
     
     function claimVestedTokens(VestingCategory category) external nonReentrant {
@@ -730,7 +808,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         if (claimableAmount == 0) revert NoTokensToClaim();
         
         allocation.claimedAmount += claimableAmount;
-        saleToken.transfer(msg.sender, claimableAmount);
+        _safeTransfer(address(saleToken), msg.sender, claimableAmount);
         
         emit TokensClaimed(msg.sender, category, claimableAmount);
     }
@@ -784,10 +862,10 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 ethBalance = address(this).balance;
         
         if (usdtBalance > 0) {
-            usdtToken.transfer(owner(), usdtBalance);
+            _safeTransfer(address(usdtToken), owner(), usdtBalance);
         }
         if (usdcBalance > 0) {
-            usdcToken.transfer(owner(), usdcBalance);
+            _safeTransfer(address(usdcToken), owner(), usdcBalance);
         }
         if (ethBalance > 0) {
             payable(owner()).transfer(ethBalance);
@@ -799,7 +877,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
     function emergencyTokenWithdraw() external onlyOwner {
         uint256 balance = saleToken.balanceOf(address(this));
         if (balance > 0) {
-            saleToken.transfer(owner(), balance);
+            _safeTransfer(address(saleToken), owner(), balance);
         }
     }
     
@@ -822,10 +900,11 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         bool isPresale,
         address referrer,
         uint256 nonce,
+        uint256 expiry,
         bytes calldata signature
     ) external nonReentrant whenNotPaused onlyOwner {
-        // Verify backend signature
-        _verifySignature(buyer, usdAmount, nonce, signature);
+        // Verify cross-chain backend signature with expiry
+        _verifyCrossChainSignature(buyer, usdAmount, chainId, isPresale, referrer, nonce, expiry, signature);
         
         if (address(saleToken) == address(0)) revert ZeroAddress();
         if (buyer == address(0)) revert ZeroAddress();
@@ -868,7 +947,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         }
         
         // Transfer tokens immediately to buyer
-        saleToken.transfer(buyer, tokensToAllocate);
+        _safeTransfer(address(saleToken), buyer, tokensToAllocate);
         
         emit CrossChainTokensDistributed(buyer, tokensToAllocate, chainId, isPresale ? SalePhase.PresaleWhitelist : SalePhase.PublicSale);
     }
@@ -920,7 +999,7 @@ contract xtsySale is ReentrancyGuard, Ownable, Pausable {
         uint256 _totalUsdtRaised,
         uint256 _totalUsdcRaised,
         uint256 _totalEthRaised,
-        SalePhase _currentPhase
+        SalePhase _phase
     ) {
         return (totalPresaleSold, totalPublicSaleSold, totalUsdtRaised, totalUsdcRaised, totalEthRaised, getCurrentPhase());
     }

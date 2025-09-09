@@ -1,0 +1,146 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../src/xtsySale.sol";
+import "../src/ExtsyToken.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+
+/**
+ * @title SimplePresaleDemo
+ * @dev Demonstrates the simplified presale with no limits and direct referrals
+ */
+contract SimplePresaleDemo is Test {
+    xtsySale public presale;
+    ExtsyToken public xtsyToken;
+    MockUSDT public usdtToken;
+    MockUSDC public usdcToken;
+    
+    address public owner = address(1);
+    address public alice = address(2);  
+    address public bob = address(3);    // Referrer
+    
+    function setUp() public {
+        vm.startPrank(owner);
+        
+        // Deploy mock stablecoins
+        usdtToken = new MockUSDT();
+        usdcToken = new MockUSDC();
+        
+        // We need to deploy presale first to get its address
+        // Then deploy token with presale as recipient
+        // For simplicity in tests, using a placeholder approach
+        
+        // Deploy token with allocations
+        xtsyToken = new ExtsyToken(
+            owner,
+            owner,    // presale
+            owner,    // public sale
+            owner,    // liquidity
+            owner,    // team advisors
+            owner,    // ecosystem
+            owner,    // treasury
+            owner,    // staking
+            owner     // marketing
+        );
+        
+        presale = new xtsySale(
+            address(xtsyToken),
+            address(usdtToken),
+            address(usdcToken),
+            owner
+        );
+        
+        // Simple configuration - no min/max limits
+        xtsySale.SaleConfig memory config = xtsySale.SaleConfig({
+            presaleStartTime: block.timestamp + 1,
+            presaleEndTime: block.timestamp + 50 minutes,
+            publicSaleStartTime: block.timestamp + 60 minutes,
+            publicSaleEndTime: block.timestamp + 130 minutes,
+            presaleRate: 25000,      // $0.025 per token
+            publicSaleStartRate: 100000,  // $0.10 per token
+            presaleCap: 100_000_000 * 10**18,
+            publicSaleCap: 50_000_000 * 10**18,
+            whitelistDeadline: block.timestamp - 1,
+            priceIncreaseInterval: 30 minutes,
+            priceIncreaseAmount: 10000
+        });
+        presale.configureSale(config);
+        
+        // Transfer presale allocation to presale contract (100M + 25M for referrals)
+        xtsyToken.transfer(address(presale), 125_000_000 * 10**18);
+        
+        // Whitelist users for presale
+        presale.addToWhitelist(alice);
+        presale.addToWhitelist(bob);
+        
+        // Fund users (can be any amount)
+        usdtToken.mint(alice, 1_000_000 * 10**6); // 1M USDT
+        usdcToken.mint(alice, 500_000 * 10**6);   // 500K USDC
+        
+        vm.stopPrank();
+        
+        // Approve spending
+        vm.prank(alice);
+        usdtToken.approve(address(presale), type(uint256).max);
+        vm.prank(alice);
+        usdcToken.approve(address(presale), type(uint256).max);
+    }
+    
+    function testBuyAnyAmountWithUSDT() public {
+        vm.warp(block.timestamp + 1);
+        
+        // Can buy $1 worth
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(1 * 10**6);
+        
+        // Can buy $50,000 worth
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(50_000 * 10**6);
+        
+        // Can buy $0.50 worth (no minimum!)
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(500_000); // 0.5 USDT
+        
+        console.log("Alice can buy any amount - no limits!");
+    }
+    
+    function testDirectReferralSystem() public {
+        vm.warp(block.timestamp + 1);
+        
+        uint256 purchaseAmount = 10_000 * 10**6; // $10,000
+        
+        // Alice buys with Bob as direct referrer (no codes needed!)
+        vm.prank(alice);
+        presale.buyTokensWithUSDTAndReferral(purchaseAmount, bob);
+        
+        // Check Bob got 5% referral bonus
+        (,,, uint256 bobBonus,,,) = presale.getBuyerInfo(bob);
+        uint256 expectedBonus = (purchaseAmount * 10**18 / 25000) * 50 / 1000; // 5% of tokens
+        
+        assertEq(bobBonus, expectedBonus);
+        console.log("Bob earned", bobBonus / 10**18, "XTSY as referral bonus");
+    }
+    
+    function testMixedCurrencyPurchases() public {
+        vm.warp(block.timestamp + 1);
+        
+        // Buy with USDT
+        vm.prank(alice);
+        presale.buyTokensWithUSDT(5_000 * 10**6);
+        
+        // Buy with USDC  
+        vm.prank(alice);
+        presale.buyTokensWithUSDC(3_000 * 10**6);
+        
+        // Buy more with USDT and referral
+        vm.prank(alice);
+        presale.buyTokensWithUSDTAndReferral(2_000 * 10**6, bob);
+        
+        (uint256 totalPurchased,,,,,,) = presale.getBuyerInfo(alice);
+        assertEq(totalPurchased, 10_000 * 10**6); // Total $10,000
+        
+        console.log("Alice purchased with both USDT and USDC - total:", totalPurchased / 10**6, "USD");
+    }
+}
