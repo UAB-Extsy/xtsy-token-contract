@@ -28,7 +28,7 @@ contract CleanPresaleTest is Test {
         usdcToken = new MockUSDC();
         
         xtsyToken = new ExtsyToken(
-            owner, owner, owner, owner, owner, owner, owner, owner, owner
+            owner, owner, owner, owner, owner, owner, owner, owner
         );
         
         // Deploy clean presale

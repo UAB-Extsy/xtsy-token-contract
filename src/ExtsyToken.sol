@@ -3,14 +3,13 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ExtsyToken
  * @dev ERC20 token with capped supply, burnable functionality, and mint control
  * @notice This is the official XTSY token for the Extsy ecosystem
  */
-contract ExtsyToken is ERC20Capped, ERC20Burnable, Ownable {
+contract ExtsyToken is ERC20Capped, ERC20Burnable {
     /// @dev Maximum supply of tokens (500 million XTSY)
     uint256 public constant MAX_SUPPLY = 500_000_000 * 10**18;
 
@@ -36,18 +35,16 @@ contract ExtsyToken is ERC20Capped, ERC20Burnable, Ownable {
 
     /**
      * @dev Constructor that sets up the token with initial parameters and distributes tokens
-     * @param initialOwner The address that will own the contract
-     * @param _presaleAddress Address for presale allocation (2% = 10M XTSY)
-     * @param _publicSaleAddress Address for public sale allocation (6% = 30M XTSY)
-     * @param _liquidityAddress Address for liquidity & market making allocation (7% = 35M XTSY)
-     * @param _teamAdvisorsAddress Address for team & advisors allocation (15% = 75M XTSY)
-     * @param _ecosystemAddress Address for ecosystem growth allocation (20% = 100M XTSY)
-     * @param _treasuryAddress Address for treasury allocation (25% = 125M XTSY)
-     * @param _stakingAddress Address for staking rewards allocation (15% = 75M XTSY)
-     * @param _marketingAddress Address for marketing & partnerships allocation (10% = 50M XTSY)
+     * @param _presaleAddress Address for presale allocation (2%)
+     * @param _publicSaleAddress Address for public sale allocation (6%)
+     * @param _liquidityAddress Address for liquidity & market making allocation (7%)
+     * @param _teamAdvisorsAddress Address for team & advisors allocation (15%)
+     * @param _ecosystemAddress Address for ecosystem growth allocation (20%)
+     * @param _treasuryAddress Address for treasury allocation (25%)
+     * @param _stakingAddress Address for staking rewards allocation (15%)
+     * @param _marketingAddress Address for marketing & partnerships allocation (10%)
      */
     constructor(
-        address initialOwner,
         address _presaleAddress,
         address _publicSaleAddress,
         address _liquidityAddress,
@@ -59,12 +56,7 @@ contract ExtsyToken is ERC20Capped, ERC20Burnable, Ownable {
     )
         ERC20("XTSY", "XTSY")
         ERC20Capped(MAX_SUPPLY)
-        Ownable(initialOwner)
     {
-        if (initialOwner == address(0)) {
-            revert OwnableInvalidOwner(address(0));
-        }
-
         require(_presaleAddress != address(0), "Invalid presale address");
         require(_publicSaleAddress != address(0), "Invalid public sale address");
         require(_liquidityAddress != address(0), "Invalid liquidity address");
@@ -83,7 +75,7 @@ contract ExtsyToken is ERC20Capped, ERC20Burnable, Ownable {
         stakingAddress = _stakingAddress;
         marketingAddress = _marketingAddress;
 
-        // Mint tokens according to tokenomics (Total: 500M XTSY)
+        // Mint tokens according to updated tokenomics (Total: 500M XTSY)
         _mint(_presaleAddress, (MAX_SUPPLY * PRESALE_ALLOCATION) / 10000);           // 10M XTSY (2%)
         _mint(_publicSaleAddress, (MAX_SUPPLY * PUBLICSALE_ALLOCATION) / 10000);     // 30M XTSY (6%)
         _mint(_liquidityAddress, (MAX_SUPPLY * LIQUIDITY_ALLOCATION) / 10000);       // 35M XTSY (7%)
@@ -94,17 +86,6 @@ contract ExtsyToken is ERC20Capped, ERC20Burnable, Ownable {
         _mint(_marketingAddress, (MAX_SUPPLY * MARKETING_ALLOCATION) / 10000);       // 50M XTSY (10%)
     }
 
-    /**
-     * @dev Mint tokens to a specific address (only owner)
-     * @param to Address to mint tokens to
-     * @param amount Amount of tokens to mint
-     */
-    function mint(address to, uint256 amount) external onlyOwner {
-        require(to != address(0), "Cannot mint to zero address");
-        
-        _mint(to, amount);
-    }
-    
     /**
      * @dev Internal function to update token balances with capped supply check
      * @param from Address tokens are being transferred from

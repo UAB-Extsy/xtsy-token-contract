@@ -79,7 +79,6 @@ contract DeployCleanPresale is Script {
         console.log("Referral Pool Address:", referralPoolAddress);
         
         token = new ExtsyToken(
-            initialOwner,
             address(presale),        // presale
             address(presale),        // public sale (reusing presale for simplicity)
             address(presale),        // liquidity
@@ -117,8 +116,8 @@ contract DeployCleanPresale is Script {
         console.log("\n5. Configuring Sale Timing...");
         
         uint256 currentTime = block.timestamp;
-        uint256 whitelistPeriod = 0;
-        uint256 presalePeriod = 2 days;
+        uint256 whitelistPeriod = 2 hours;
+        uint256 presalePeriod = 2 hours;
         uint256 publicSalePeriod = 2 hours;
         xtsySale.SaleConfig memory saleConfig = xtsySale.SaleConfig({
             presaleStartTime: currentTime + whitelistPeriod,                        // Start after 30min whitelist period

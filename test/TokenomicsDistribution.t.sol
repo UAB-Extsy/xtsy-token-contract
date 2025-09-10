@@ -25,7 +25,6 @@ contract TokenomicsDistributionTest is Test {
         
         // Deploy token with proper allocations
         xtsyToken = new ExtsyToken(
-            owner,
             presaleContract,     // presale
             presaleContract,     // public sale (reusing presale)
             communityWallet,     // liquidity
@@ -146,22 +145,22 @@ contract TokenomicsDistributionTest is Test {
     function testConstructorRevertsWithZeroAddresses() public {
         // Test zero presale address
         vm.expectRevert("Invalid presale address");
-        new ExtsyToken(owner, address(0), communityWallet, communityWallet, teamWallet, communityWallet, treasuryWallet, communityWallet, referralPool);
+        new ExtsyToken(address(0), communityWallet, communityWallet, teamWallet, communityWallet, treasuryWallet, communityWallet, referralPool);
         
         // Test zero community address
         vm.expectRevert("Invalid liquidity address");
-        new ExtsyToken(owner, presaleContract, presaleContract, address(0), teamWallet, communityWallet, treasuryWallet, communityWallet, referralPool);
+        new ExtsyToken(presaleContract, presaleContract, address(0), teamWallet, communityWallet, treasuryWallet, communityWallet, referralPool);
         
         // Test zero treasury address
         vm.expectRevert("Invalid treasury address");
-        new ExtsyToken(owner, presaleContract, presaleContract, communityWallet, teamWallet, communityWallet, address(0), communityWallet, referralPool);
+        new ExtsyToken(presaleContract, presaleContract, communityWallet, teamWallet, communityWallet, address(0), communityWallet, referralPool);
         
         // Test zero team address
         vm.expectRevert("Invalid team/advisors address");
-        new ExtsyToken(owner, presaleContract, presaleContract, communityWallet, address(0), communityWallet, treasuryWallet, communityWallet, referralPool);
+        new ExtsyToken(presaleContract, presaleContract, communityWallet, address(0), communityWallet, treasuryWallet, communityWallet, referralPool);
         
         // Test zero referral pool address
         vm.expectRevert("Invalid marketing address");
-        new ExtsyToken(owner, presaleContract, presaleContract, communityWallet, teamWallet, communityWallet, treasuryWallet, communityWallet, address(0));
+        new ExtsyToken(presaleContract, presaleContract, communityWallet, teamWallet, communityWallet, treasuryWallet, communityWallet, address(0));
     }
 }

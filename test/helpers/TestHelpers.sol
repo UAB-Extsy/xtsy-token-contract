@@ -39,7 +39,6 @@ contract TestHelpers is Test {
         vm.prank(owner);
         // Deploy with all allocations going to owner for test simplicity
         return new ExtsyToken(
-            owner,
             owner, // presale
             owner, // public sale
             owner, // liquidity  

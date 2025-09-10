@@ -63,7 +63,7 @@ contract ComprehensiveXtsySaleTest is Test {
         
         // Deploy XTSY token
         xtsyToken = new ExtsyToken(
-            owner, owner, owner, owner, owner, owner, owner, owner, owner
+            owner, owner, owner, owner, owner, owner, owner, owner
         );
         
         // Deploy presale contract

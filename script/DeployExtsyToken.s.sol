@@ -33,7 +33,6 @@ contract DeployExtsyToken is Script {
         vm.startBroadcast();
         
         token = new ExtsyToken(
-            initialOwner,
             presaleAddress,       // presale
             presaleAddress,       // public sale (reusing presale for simplicity)
             communityAddress,     // liquidity
@@ -52,7 +51,7 @@ contract DeployExtsyToken is Script {
         console2.log("Token symbol:", token.symbol());
         console2.log("Token decimals:", token.decimals());
         console2.log("Total Supply:", token.totalSupply() / 10**18, "XTSY");
-        console2.log("Token owner:", token.owner());
+        console2.log("Token deployed by:", deployer);
         
         console2.log("\n=== Token Distribution ===");
         console2.log("Presale (20%):", token.balanceOf(presaleAddress) / 10**18, "XTSY");
@@ -80,7 +79,6 @@ contract DeployExtsyToken is Script {
         vm.startBroadcast();
         
         token = new ExtsyToken(
-            deployer,
             presaleAddress,       // presale
             presaleAddress,       // public sale (reusing presale for simplicity)
             communityAddress,     // liquidity
