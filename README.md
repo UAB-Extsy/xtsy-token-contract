@@ -1,15 +1,14 @@
 # XTSY Token
 
-A professional ERC20 token implementation with capped supply, burnable functionality, and comprehensive security features.
+A professional ERC20 token implementation with capped supply, burnable functionality, and automatic token distribution. The token is fully decentralized with no owner functions after deployment.
 
 ## Features
 
 - **ERC20 Standard**: Fully compliant with ERC20 token standard
 - **Capped Supply**: Maximum supply of 500 million XTSY tokens
 - **Burnable**: Token holders can burn their tokens using OpenZeppelin ERC20Burnable
-- **Mintable**: Only contract owner can mint new tokens (up to cap)
 - **Automatic Distribution**: All tokens are distributed at deployment according to tokenomics
-- **Ownership Control**: Secure ownership transfer mechanism
+- **Fully Decentralized**: No owner functions - contract is immutable after deployment
 - **Comprehensive Events**: Detailed event emissions for all operations
 - **Security Features**: Custom error handling and input validation
 
@@ -40,20 +39,20 @@ A professional ERC20 token implementation with capped supply, burnable functiona
 
 - `ERC20Capped`: Provides capped token supply functionality
 - `ERC20Burnable`: Allows token burning (OpenZeppelin standard)
-- `Ownable`: Provides ownership control
 
 ### Key Functions
-
-#### Owner Functions
-
-- `mint(address to, uint256 amount)`: Mint additional tokens to specified address
-- `transferOwnership(address newOwner)`: Transfer contract ownership
-- `renounceOwnership()`: Renounce ownership
 
 #### User Functions
 
 - `burn(uint256 amount)`: Burn tokens from caller's balance (OpenZeppelin)
 - `burnFrom(address account, uint256 amount)`: Burn tokens from specified account (requires allowance)
+
+#### Standard ERC20 Functions
+
+- `transfer(address to, uint256 amount)`: Transfer tokens to another address
+- `transferFrom(address from, address to, uint256 amount)`: Transfer tokens on behalf of another address
+- `approve(address spender, uint256 amount)`: Approve spender to transfer tokens
+- `allowance(address owner, address spender)`: Check allowance
 
 #### View Functions
 
@@ -61,6 +60,20 @@ A professional ERC20 token implementation with capped supply, burnable functiona
 - `totalSupply()`: Get current total supply
 - `balanceOf(address account)`: Get token balance of account
 - `cap()`: Get the maximum supply cap
+- `name()`: Get token name ("XTSY")
+- `symbol()`: Get token symbol ("XTSY")
+- `decimals()`: Get token decimals (18)
+
+#### Allocation Addresses (Immutable)
+
+- `presaleAddress`: Address for presale allocation (10M XTSY)
+- `publicSaleAddress`: Address for public sale allocation (30M XTSY)
+- `liquidityAddress`: Address for liquidity allocation (35M XTSY)
+- `teamAdvisorsAddress`: Address for team allocation (75M XTSY)
+- `ecosystemAddress`: Address for ecosystem allocation (100M XTSY)
+- `treasuryAddress`: Address for treasury allocation (125M XTSY)
+- `stakingAddress`: Address for staking allocation (75M XTSY)
+- `marketingAddress`: Address for marketing allocation (50M XTSY)
 
 ## Development Setup
 
@@ -74,7 +87,7 @@ A professional ERC20 token implementation with capped supply, burnable functiona
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd extsy-token
+cd xtsy-token-contract
 
 # Install dependencies
 forge install
@@ -115,7 +128,6 @@ cp .env.example .env
 2. Edit `.env` with your deployment parameters:
 
    - `PRIVATE_KEY`: Your deployment wallet private key
-   - `INITIAL_OWNER`: Address that will own the contract
    - `PRESALE_ADDRESS`: Address for presale allocation (10M XTSY)
    - `PUBLIC_SALE_ADDRESS`: Address for public sale allocation (30M XTSY)
    - `LIQUIDITY_ADDRESS`: Address for liquidity allocation (35M XTSY)
@@ -146,22 +158,23 @@ forge script script/DeployExtsyToken.s.sol --rpc-url $ETHEREUM_RPC_URL --broadca
 
 ## Security Features
 
-### Access Control
+### Decentralization
 
-- Only contract owner can mint additional tokens
-- Ownership can be transferred or renounced
-- All privileged functions are protected by `onlyOwner` modifier
+- No owner functions - contract is fully decentralized after deployment
+- All tokens are distributed at deployment according to tokenomics
+- No additional minting possible after deployment
+- Immutable allocation addresses stored as constants
 
 ### Supply Management
 
 - Hard cap of 500 million tokens enforced at contract level
 - Tokens can be burned but never created beyond cap
-- Minting automatically checks against remaining supply
 - All tokens are distributed at deployment according to tokenomics
+- Supply cap enforced using OpenZeppelin's ERC20Capped
 
 ### Input Validation
 
-- Zero address validation for minting
+- Zero address validation for all allocation addresses during deployment
 - Custom error messages for better debugging
 - OpenZeppelin's battle-tested burnable implementation
 
@@ -176,13 +189,14 @@ forge script script/DeployExtsyToken.s.sol --rpc-url $ETHEREUM_RPC_URL --broadca
 - Custom errors save gas compared to revert strings
 - Efficient supply tracking with cached calculations
 - Immutable allocation addresses for gas efficiency
+- No owner functions reduce contract size and gas costs
 
 ## Testing Strategy
 
 ### Unit Tests (`ExtsyToken.t.sol`)
 
 - Basic functionality testing
-- Access control verification
+- Token distribution verification
 - Edge case handling
 - Fuzz testing for random inputs
 
@@ -192,6 +206,13 @@ forge script script/DeployExtsyToken.s.sol --rpc-url $ETHEREUM_RPC_URL --broadca
 - Gas optimization validation
 - Large-scale operation testing
 - Cross-function interaction testing
+
+### Tokenomics Distribution Tests (`TokenomicsDistribution.t.sol`)
+
+- Automatic token distribution verification
+- Allocation percentage validation
+- Total supply cap enforcement
+- Address validation testing
 
 ### Test Helpers (`TestHelpers.sol`)
 
@@ -209,10 +230,6 @@ The contract emits the following events:
 - `Transfer(address indexed from, address indexed to, uint256 value)`
 - `Approval(address indexed owner, address indexed spender, uint256 value)`
 
-### OpenZeppelin Events
-
-- `OwnershipTransferred(address indexed previousOwner, address indexed newOwner)`
-
 ## License
 
 MIT License - see LICENSE file for details.
@@ -229,10 +246,11 @@ MIT License - see LICENSE file for details.
 ## Security Considerations
 
 - Always verify the contract address before interacting
-- The owner has minting privileges - ensure secure key management
 - Contract is immutable once deployed - thoroughly test before mainnet deployment
-- Consider timelock mechanisms for additional security in production
 - All allocation addresses are validated during deployment
+- No owner functions means no administrative control after deployment
+- All tokens are distributed at deployment - no additional minting possible
+- Consider using multi-signature wallets for allocation addresses in production
 
 ## Support
 

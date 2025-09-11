@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XTSY token automatically distributes the total supply of 500M tokens according to the implemented tokenomics during deployment.
+The XTSY token automatically distributes the total supply of 500M tokens according to the implemented tokenomics during deployment. The contract uses OpenZeppelin's ERC20Capped and ERC20Burnable for supply management and burning functionality.
 
 ## Token Distribution (500M Total Supply)
 
@@ -21,25 +21,25 @@ The XTSY token automatically distributes the total supply of 500M tokens accordi
 
 ### Constructor Parameters
 
-The `ExtsyToken` constructor requires 9 addresses:
+The `ExtsyToken` constructor requires 8 addresses (no initial owner parameter):
 
-1. `initialOwner` - Contract owner (admin)
-2. `_presaleAddress` - Receives 10M XTSY (2%) for presale
-3. `_publicSaleAddress` - Receives 30M XTSY (6%) for public sale
-4. `_liquidityAddress` - Receives 35M XTSY (7%) for liquidity
-5. `_teamAdvisorsAddress` - Receives 75M XTSY (15%) for team (should implement vesting)
-6. `_ecosystemAddress` - Receives 100M XTSY (20%) for ecosystem growth
-7. `_treasuryAddress` - Receives 125M XTSY (25%) for treasury
-8. `_stakingAddress` - Receives 75M XTSY (15%) for staking rewards
-9. `_marketingAddress` - Receives 50M XTSY (10%) for marketing
+1. `_presaleAddress` - Receives 10M XTSY (2%) for presale
+2. `_publicSaleAddress` - Receives 30M XTSY (6%) for public sale
+3. `_liquidityAddress` - Receives 35M XTSY (7%) for liquidity
+4. `_teamAdvisorsAddress` - Receives 75M XTSY (15%) for team (should implement vesting)
+5. `_ecosystemAddress` - Receives 100M XTSY (20%) for ecosystem growth
+6. `_treasuryAddress` - Receives 125M XTSY (25%) for treasury
+7. `_stakingAddress` - Receives 75M XTSY (15%) for staking rewards
+8. `_marketingAddress` - Receives 50M XTSY (10%) for marketing
 
 ### Key Features
 
 1. **Automatic Distribution**: All 500M tokens are minted and distributed in the constructor
-2. **Owner Minting**: Owner can mint additional tokens up to the maximum supply cap
+2. **No Owner Minting**: No additional minting functionality - all tokens are distributed at deployment
 3. **Burnable**: Users can burn their own tokens using OpenZeppelin's ERC20Burnable
 4. **Immutable Addresses**: Allocation addresses are stored as immutable variables
 5. **Supply Cap**: Maximum supply is hard-capped at 500M XTSY tokens
+6. **No Ownership**: Contract does not inherit from Ownable - no owner functions
 
 ### Contract Constants
 
@@ -60,7 +60,6 @@ uint256 public constant MARKETING_ALLOCATION = 1000;        // 10%
 
 ```solidity
 ExtsyToken token = new ExtsyToken(
-    0x123..., // initialOwner
     0x456..., // presaleAddress (10M XTSY)
     0x789..., // publicSaleAddress (30M XTSY)
     0xABC..., // liquidityAddress (35M XTSY)
@@ -74,16 +73,22 @@ ExtsyToken token = new ExtsyToken(
 
 ### Available Functions
 
-#### Owner Functions
-
-- `mint(address to, uint256 amount)` - Mint additional tokens (only owner)
-- `transferOwnership(address newOwner)` - Transfer ownership
-- `renounceOwnership()` - Renounce ownership
-
 #### User Functions
 
 - `burn(uint256 amount)` - Burn tokens from caller's balance
 - `burnFrom(address account, uint256 amount)` - Burn tokens from account (requires allowance)
+
+#### Standard ERC20 Functions
+
+- `transfer(address to, uint256 amount)` - Transfer tokens to another address
+- `transferFrom(address from, address to, uint256 amount)` - Transfer tokens on behalf of another address
+- `approve(address spender, uint256 amount)` - Approve spender to transfer tokens
+- `allowance(address owner, address spender)` - Check allowance
+- `balanceOf(address account)` - Check token balance
+- `totalSupply()` - Get total supply
+- `name()` - Get token name ("XTSY")
+- `symbol()` - Get token symbol ("XTSY")
+- `decimals()` - Get token decimals (18)
 
 ### Testing
 
@@ -98,7 +103,6 @@ forge test --match-path test/TokenomicsDistribution.t.sol -vv
 Use the deployment script with environment variables:
 
 ```bash
-INITIAL_OWNER=0x... \
 PRESALE_ADDRESS=0x... \
 PUBLIC_SALE_ADDRESS=0x... \
 LIQUIDITY_ADDRESS=0x... \
@@ -120,17 +124,20 @@ forge script script/DeployExtsyToken.s.sol:DeployExtsyToken --rpc-url $RPC_URL -
 
 4. **Marketing Budget**: The marketing allocation (50M XTSY) should be used for partnerships and marketing campaigns.
 
-5. **Supply Cap**: The total supply is capped at 500M XTSY. Additional minting is only possible up to this limit.
+5. **Supply Cap**: The total supply is capped at 500M XTSY. No additional minting is possible after deployment.
 
 6. **Security**: All allocation addresses are validated to not be zero addresses during deployment.
+
+7. **No Ownership**: The contract does not have an owner, making it fully decentralized after deployment.
 
 ## Verified Features
 
 ✅ Total supply correctly set to 500M XTSY
 ✅ Automatic distribution according to implemented percentages
 ✅ All allocation addresses stored as immutable
-✅ Owner can mint additional tokens up to supply cap
+✅ No additional minting functionality (fully distributed at deployment)
 ✅ Burnable functionality using OpenZeppelin ERC20Burnable
-✅ Zero address validation
-✅ Supply cap enforcement
+✅ Zero address validation for all allocation addresses
+✅ Supply cap enforcement using ERC20Capped
+✅ No ownership functions (fully decentralized)
 ✅ All tests passing
